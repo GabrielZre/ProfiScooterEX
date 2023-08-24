@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.profiscooterex.R
@@ -27,12 +28,19 @@ import com.example.profiscooterex.data.Resource
 import com.example.profiscooterex.navigation.ROUTE_HOME
 import com.example.profiscooterex.navigation.ROUTE_LOGIN
 import com.example.profiscooterex.navigation.ROUTE_SIGNUP
+import com.example.profiscooterex.ui.destinations.HomeScreenDestination
+import com.example.profiscooterex.ui.destinations.SignupScreenDestination
 import com.example.profiscooterex.ui.theme.AppTheme
 import com.example.profiscooterex.ui.theme.spacing
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
+import com.ramcosta.composedestinations.navigation.popUpTo
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Destination(start = true)
 @Composable
-fun LoginScreen(viewModel: AuthViewModel?, navController: NavController) {
+fun LoginScreen(viewModel : AuthViewModel? = hiltViewModel(),navigator: DestinationsNavigator) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -126,8 +134,11 @@ fun LoginScreen(viewModel: AuthViewModel?, navController: NavController) {
                     end.linkTo(parent.end, spacing.extraLarge)
                 }
                 .clickable {
-                    navController.navigate(ROUTE_SIGNUP) {
+                    /*navController.navigate(ROUTE_SIGNUP) {
                         popUpTo(ROUTE_LOGIN) { inclusive = true }
+                    }*/
+                    navigator.navigate(SignupScreenDestination) {
+                        popUpTo(SignupScreenDestination.route) { inclusive = true }
                     }
                 },
             text = stringResource(id = R.string.dont_have_account),
@@ -152,8 +163,11 @@ fun LoginScreen(viewModel: AuthViewModel?, navController: NavController) {
                 }
                 is Resource.Success -> {
                     LaunchedEffect(Unit) {
-                        navController.navigate(ROUTE_HOME){
+                        /*navController.navigate(ROUTE_HOME){
                             popUpTo(ROUTE_HOME) { inclusive = true }
+                        }*/
+                        navigator.navigate(HomeScreenDestination) {
+                            popUpTo(HomeScreenDestination.route) {inclusive = true}
                         }
                     }
                 }
@@ -162,11 +176,12 @@ fun LoginScreen(viewModel: AuthViewModel?, navController: NavController) {
     }
 }
 
+
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Composable
 fun LoginScreenPreviewLight() {
     AppTheme {
-        LoginScreen(null, rememberNavController())
+        LoginScreen(null, navigator = EmptyDestinationsNavigator)
     }
 }
 
@@ -174,6 +189,6 @@ fun LoginScreenPreviewLight() {
 @Composable
 fun LoginScreenPreviewDark() {
     AppTheme {
-        LoginScreen(null, rememberNavController())
+        LoginScreen(null, navigator = EmptyDestinationsNavigator)
     }
 }

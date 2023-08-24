@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.profiscooterex.R
@@ -28,12 +29,19 @@ import com.example.profiscooterex.data.Resource
 import com.example.profiscooterex.navigation.ROUTE_HOME
 import com.example.profiscooterex.navigation.ROUTE_LOGIN
 import com.example.profiscooterex.navigation.ROUTE_SIGNUP
+import com.example.profiscooterex.ui.destinations.HomeScreenDestination
+import com.example.profiscooterex.ui.destinations.LoginScreenDestination
 import com.example.profiscooterex.ui.theme.AppTheme
 import com.example.profiscooterex.ui.theme.spacing
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
+import com.ramcosta.composedestinations.navigation.popUpTo
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Destination
 @Composable
-fun SignupScreen(viewModel: AuthViewModel?, navController: NavHostController) {
+fun SignupScreen(viewModel: AuthViewModel? = hiltViewModel(), navigator: DestinationsNavigator) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -149,8 +157,12 @@ fun SignupScreen(viewModel: AuthViewModel?, navController: NavHostController) {
                     end.linkTo(parent.end, spacing.extraLarge)
                 }
                 .clickable {
-                    navController.navigate(ROUTE_LOGIN) {
+                    /*navController.navigate(ROUTE_LOGIN) {
                         popUpTo(ROUTE_SIGNUP) { inclusive = true }
+                    }
+                    */
+                    navigator.navigate(LoginScreenDestination) {
+                        popUpTo(LoginScreenDestination.route) {inclusive = true}
                     }
                 },
             text = stringResource(id = R.string.already_have_account),
@@ -175,8 +187,11 @@ fun SignupScreen(viewModel: AuthViewModel?, navController: NavHostController) {
                 }
                 is Resource.Success -> {
                     LaunchedEffect(Unit) {
-                        navController.navigate(ROUTE_HOME){
+                        /*navController.navigate(ROUTE_HOME){
                             popUpTo(ROUTE_HOME) { inclusive = true }
+                        }*/
+                        navigator.navigate(HomeScreenDestination) {
+                            popUpTo(HomeScreenDestination.route) { inclusive = true }
                         }
                     }
                 }
@@ -186,11 +201,12 @@ fun SignupScreen(viewModel: AuthViewModel?, navController: NavHostController) {
     }
 }
 
+
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Composable
 fun SignupScreenPreviewLight() {
     AppTheme {
-        SignupScreen(null, rememberNavController())
+        SignupScreen(null, navigator = EmptyDestinationsNavigator)
     }
 }
 
@@ -198,6 +214,6 @@ fun SignupScreenPreviewLight() {
 @Composable
 fun SignupScreenPreviewDark() {
     AppTheme {
-        SignupScreen(null, rememberNavController())
+        SignupScreen(null, navigator = EmptyDestinationsNavigator)
     }
 }

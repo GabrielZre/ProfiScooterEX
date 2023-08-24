@@ -37,12 +37,20 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:22476331514:android:9d0efc39184930c928ac43",
+        "mobilesdk_app_id": "1:22476331514:android:63525a175f512aa928ac43",
         "android_client_info": {
           "package_name": "com.example.profiscooterex"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "22476331514-4q6igf0km3b18jlrn0b1c061phghs8vd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.profiscooterex",
+            "certificate_hash": "b3f7aa14689dc8257f584735c2592cd00e32958c"
+          }
+        },
         {
           "client_id": "22476331514-l5utus27j2vjudjho56dhlp8lr5g5kuh.apps.googleusercontent.com",
           "client_type": 3
