@@ -28,7 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.profiscooterex.R
-import com.example.profiscooterex.data.userDB.DataViewModel
+//import com.example.profiscooterex.data.userDB.DataViewModel
 import com.example.profiscooterex.data.userDB.Trip
 import com.example.profiscooterex.navigation.ROUTE_HOME
 import com.example.profiscooterex.navigation.ROUTE_LOGIN
@@ -39,10 +39,10 @@ import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 import java.util.LinkedList
 
 @Composable
-fun HomeScreen(viewModel: AuthViewModel?, userDataViewModel: DataViewModel? = viewModel(), navController: NavHostController) {
+fun HomeScreen(viewModel: AuthViewModel?, /*userDataViewModel: DataViewModel? = viewModel(),*/ navController: NavHostController) {
     val spacing = MaterialTheme.spacing
-    val getUserData = userDataViewModel?.userDataState?.value
-    val getTripData = userDataViewModel?.tripsDataState?.value ?: emptyList()
+    //val getUserData = userDataViewModel?.userDataState?.value
+    //val getTripData = userDataViewModel?.tripsDataState?.value ?: emptyList()
 
     Row(
         modifier = Modifier
@@ -99,7 +99,8 @@ fun HomeScreen(viewModel: AuthViewModel?, userDataViewModel: DataViewModel? = vi
                 )
 
                 Text(
-                    text = getUserData?.nick ?: "",
+                    //text = getUserData?.nick ?: "",
+                    text = "",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.weight(0.8f),
                     color = MaterialTheme.colorScheme.onSurface
@@ -113,10 +114,10 @@ fun HomeScreen(viewModel: AuthViewModel?, userDataViewModel: DataViewModel? = vi
             modifier = Modifier.height(306.dp)
         )
 
-        Row()
+       /* Row()
         {
             HistoryTrips(getTripData)
-        }
+        }*/
     }
 }
 
@@ -214,7 +215,8 @@ val sampleTrip =
 @Composable
 fun HomeScreenPreviewLight() {
     AppTheme {
-        HomeScreen(null, null, rememberNavController())
+        //HomeScreen(null, null, rememberNavController())
+        HomeScreen(null,  rememberNavController())
     }
 }
 
@@ -222,7 +224,8 @@ fun HomeScreenPreviewLight() {
 @Composable
 fun HomeScreenPreviewDark() {
     AppTheme {
-        HomeScreen(null, null, rememberNavController())
+        //HomeScreen(null, null, rememberNavController())
+        HomeScreen(null,  rememberNavController())
     }
 }
 

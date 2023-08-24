@@ -1,5 +1,6 @@
-package com.example.profiscooterex.data.userDB
 
+package com.example.profiscooterex.data.userDB
+/*
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -31,20 +32,25 @@ class DataViewModel @Inject constructor(
 
     private fun getUserData() {
 
-        viewModelScope.launch {
+        */
+/*viewModelScope.launch {
             userDataState.value = getUserDataFromDB()
-        }
+        }*//*
+
     }
 
     private fun getTripData() {
-        viewModelScope.launch {
+        */
+/*viewModelScope.launch {
             tripsDataState.value = getTripDataFromDB()
-        }
+        }*//*
+
     }
 
 }
 
-suspend fun getUserDataFromDB() : User {
+*/
+/*suspend fun getUserDataFromDB() : User {
     val currentUser = FirebaseAuth.getInstance().currentUser
     val reference = FirebaseDatabase.getInstance()
         .getReference("Users")
@@ -61,8 +67,11 @@ suspend fun getUserDataFromDB() : User {
     Log.d("UserData", "Name: ${userData.nick}, Email: ${userData.email}, Age: ${userData.age}")
 
     return userData
-}
+}*//*
 
+
+*/
+/*
 suspend fun getTripDataFromDB() : ArrayList<Trip> {
     val currentUser = FirebaseAuth.getInstance().currentUser
     val reference = FirebaseDatabase.getInstance()
@@ -92,4 +101,6 @@ suspend fun getTripDataFromDB() : ArrayList<Trip> {
     }
 
     return tripsListData
-}
+}*//*
+*/
+

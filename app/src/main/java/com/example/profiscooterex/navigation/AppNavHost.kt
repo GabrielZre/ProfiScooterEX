@@ -6,7 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.profiscooterex.data.userDB.DataViewModel
+//import com.example.profiscooterex.data.userDB.DataViewModel
 import com.example.profiscooterex.ui.auth.AuthViewModel
 import com.example.profiscooterex.ui.auth.LoginScreen
 import com.example.profiscooterex.ui.auth.SignupScreen
@@ -15,7 +15,7 @@ import com.example.profiscooterex.ui.home.HomeScreen
 @Composable
 fun AppNavHost(
     viewModel: AuthViewModel,
-    dataViewModel: DataViewModel,
+    //dataViewModel: DataViewModel,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     startDestination: String = ROUTE_LOGIN
@@ -32,7 +32,8 @@ fun AppNavHost(
             SignupScreen(viewModel, navController)
         }
         composable(ROUTE_HOME) {
-            HomeScreen(viewModel, dataViewModel, navController)
+            //HomeScreen(viewModel, dataViewModel, navController)
+            HomeScreen(viewModel, navController)
         }
     }
 }
