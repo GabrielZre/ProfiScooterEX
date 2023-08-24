@@ -24,25 +24,33 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.profiscooterex.R
+import com.example.profiscooterex.data.userDB.DataViewModel
 //import com.example.profiscooterex.data.userDB.DataViewModel
 import com.example.profiscooterex.data.userDB.Trip
 import com.example.profiscooterex.navigation.ROUTE_HOME
 import com.example.profiscooterex.navigation.ROUTE_LOGIN
 import com.example.profiscooterex.ui.auth.AuthViewModel
+import com.example.profiscooterex.ui.destinations.LoginScreenDestination
 import com.example.profiscooterex.ui.theme.AppTheme
 import com.example.profiscooterex.ui.theme.spacing
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
+import com.ramcosta.composedestinations.navigation.popUpTo
 import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 import java.util.LinkedList
 
+@Destination
 @Composable
-fun HomeScreen(viewModel: AuthViewModel?, /*userDataViewModel: DataViewModel? = viewModel(),*/ navController: NavHostController) {
+fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), userDataViewModel: DataViewModel? = hiltViewModel(), navigator: DestinationsNavigator /*,userDataViewModel: DataViewModel? = viewModel()*/) {
     val spacing = MaterialTheme.spacing
-    //val getUserData = userDataViewModel?.userDataState?.value
-    //val getTripData = userDataViewModel?.tripsDataState?.value ?: emptyList()
+    val getUserData = userDataViewModel?.userDataState?.value
+    val getTripData = userDataViewModel?.tripsDataState?.value ?: emptyList()
 
     Row(
         modifier = Modifier
@@ -61,8 +69,11 @@ fun HomeScreen(viewModel: AuthViewModel?, /*userDataViewModel: DataViewModel? = 
         Button(
             onClick = {
                 viewModel?.logout()
-                navController.navigate(ROUTE_LOGIN) {
+                /*navController.navigate(ROUTE_LOGIN) {
                     popUpTo(ROUTE_HOME) { inclusive = true }
+                }*/
+                navigator.navigate(LoginScreenDestination) {
+                    popUpTo(LoginScreenDestination.route) {inclusive = true}
                 }
             },
             modifier = Modifier
@@ -99,8 +110,8 @@ fun HomeScreen(viewModel: AuthViewModel?, /*userDataViewModel: DataViewModel? = 
                 )
 
                 Text(
-                    //text = getUserData?.nick ?: "",
-                    text = "",
+                    text = getUserData?.nick ?: "",
+                    //text = "",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.weight(0.8f),
                     color = MaterialTheme.colorScheme.onSurface
@@ -114,10 +125,10 @@ fun HomeScreen(viewModel: AuthViewModel?, /*userDataViewModel: DataViewModel? = 
             modifier = Modifier.height(306.dp)
         )
 
-       /* Row()
+        Row()
         {
             HistoryTrips(getTripData)
-        }*/
+        }
     }
 }
 
@@ -215,8 +226,7 @@ val sampleTrip =
 @Composable
 fun HomeScreenPreviewLight() {
     AppTheme {
-        //HomeScreen(null, null, rememberNavController())
-        HomeScreen(null,  rememberNavController())
+        HomeScreen(null, navigator = EmptyDestinationsNavigator)
     }
 }
 
@@ -224,8 +234,7 @@ fun HomeScreenPreviewLight() {
 @Composable
 fun HomeScreenPreviewDark() {
     AppTheme {
-        //HomeScreen(null, null, rememberNavController())
-        HomeScreen(null,  rememberNavController())
+        HomeScreen(null, navigator = EmptyDestinationsNavigator)
     }
 }
 
