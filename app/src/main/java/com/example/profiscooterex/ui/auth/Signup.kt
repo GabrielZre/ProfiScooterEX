@@ -26,9 +26,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.profiscooterex.R
 import com.example.profiscooterex.data.Resource
-import com.example.profiscooterex.navigation.ROUTE_HOME
-import com.example.profiscooterex.navigation.ROUTE_LOGIN
-import com.example.profiscooterex.navigation.ROUTE_SIGNUP
 import com.example.profiscooterex.ui.destinations.HomeScreenDestination
 import com.example.profiscooterex.ui.destinations.LoginScreenDestination
 import com.example.profiscooterex.ui.theme.AppTheme

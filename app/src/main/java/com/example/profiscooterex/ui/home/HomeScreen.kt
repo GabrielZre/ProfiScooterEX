@@ -32,9 +32,9 @@ import com.example.profiscooterex.R
 import com.example.profiscooterex.data.userDB.DataViewModel
 //import com.example.profiscooterex.data.userDB.DataViewModel
 import com.example.profiscooterex.data.userDB.Trip
-import com.example.profiscooterex.navigation.ROUTE_HOME
-import com.example.profiscooterex.navigation.ROUTE_LOGIN
 import com.example.profiscooterex.ui.auth.AuthViewModel
+import com.example.profiscooterex.ui.destinations.DashboardScreenDestination
+import com.example.profiscooterex.ui.destinations.DashboardTestScreenDestination
 import com.example.profiscooterex.ui.destinations.LoginScreenDestination
 import com.example.profiscooterex.ui.theme.AppTheme
 import com.example.profiscooterex.ui.theme.spacing
@@ -42,12 +42,11 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.ramcosta.composedestinations.navigation.popUpTo
-import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 import java.util.LinkedList
 
 @Destination
 @Composable
-fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), userDataViewModel: DataViewModel? = hiltViewModel(), navigator: DestinationsNavigator /*,userDataViewModel: DataViewModel? = viewModel()*/) {
+fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), userDataViewModel: DataViewModel? = hiltViewModel(), navigator: DestinationsNavigator) {
     val spacing = MaterialTheme.spacing
     val getUserData = userDataViewModel?.userDataState?.value
     val getTripData = userDataViewModel?.tripsDataState?.value ?: emptyList()
@@ -116,14 +115,37 @@ fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), userDataViewModel: D
                     modifier = Modifier.weight(0.8f),
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                Column() {
+                    Button(
+                        onClick = {
+                            navigator.navigate(DashboardScreenDestination) {
+                                popUpTo(DashboardScreenDestination.route) {inclusive = true}
+                            }
+                        },
+                        modifier = Modifier
+                    ) {
+                        Text(text = stringResource(id = R.string.dashboard))
+                    }
+                    Button(
+                        onClick = {
+                            navigator.navigate(DashboardTestScreenDestination) {
+                                popUpTo(DashboardTestScreenDestination.route) {inclusive = true}
+                            }
+                        },
+                        modifier = Modifier
+                    ) {
+                        Text(text = "DashboardTest")
+                    }
+                }
+
             }
 
         }
-        Image(
+        /*Image(
             painter = painterResource(id = R.drawable.scooterruima),
             contentDescription = null,
             modifier = Modifier.height(306.dp)
-        )
+        )*/
 
         Row()
         {
