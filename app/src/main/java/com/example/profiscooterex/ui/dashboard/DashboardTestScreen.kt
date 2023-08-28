@@ -1,5 +1,8 @@
 package com.example.profiscooterex.ui.dashboard
 
+import android.annotation.SuppressLint
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,20 +14,19 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.profiscooterex.ApplicationViewModel
-import com.example.profiscooterex.MainActivity
-import com.example.profiscooterex.R
-import com.example.profiscooterex.data.userDB.DataViewModel
-import com.example.profiscooterex.location.LocationLiveData
+import com.example.profiscooterex.data.userDB.LocationDetails
 import com.example.profiscooterex.permissions.PermissionsViewModel
-import com.example.profiscooterex.ui.auth.AuthViewModel
 import com.example.profiscooterex.ui.destinations.HomeScreenDestination
 //import com.example.profiscooterex.ui.destinations.LoginScreenDestination
 import com.example.profiscooterex.ui.theme.AppTheme
@@ -37,15 +39,18 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
-import kotlinx.coroutines.MainScope
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun DashboardTestScreen(
     isLocationEnabled: Boolean,
-    accessFineLocationState : PermissionState,
-    //locations : LocationLiveData,
-    navigator: DestinationsNavigator) {
+    accessFineLocationState: PermissionState,
+    locationVM : ApplicationViewModel = hiltViewModel(),
+    navigator: DestinationsNavigator
+) {
+
+    val location by locationVM.getLocationLiveData().observeAsState()
+
     val spacing = MaterialTheme.spacing
     Row(
         modifier = Modifier
@@ -92,14 +97,29 @@ fun DashboardTestScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
+            location?.let {
+                Text(
+                    text =  location!!.latitude ,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = location!!.longitude ,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+
 
             if(accessFineLocationState.status.isGranted) {
-                Button(
-                    onClick = {},
+                /*Button(
+                    onClick = { locationVM.startLocationUpdates() },
                     modifier = Modifier
                 ) {
                     Text(text = "Start speedometer")
-                }
+                    Log.d("tag", "LocationUpdatesStarted")
+                }*/
             } else
             {
                 Button(
@@ -108,6 +128,13 @@ fun DashboardTestScreen(
                 ) {
                     Text(text = "Start speedometer (accompanist)")
                 }
+            }
+            Button(
+                onClick = { locationVM.startLocationUpdates() },
+                modifier = Modifier
+            ) {
+                Text(text = "Start location")
+                Log.d("tag", "LocationUpdatesStarted")
             }
 
 
@@ -126,6 +153,7 @@ fun DashboardTestScreen(
 
 
     }
+
 }
 
 
@@ -143,15 +171,16 @@ class PermissionsStatePreview : PermissionState {
 @OptIn(ExperimentalPermissionsApi::class)
 @Destination
 @Composable
-fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(), /*locationVM : ApplicationViewModel = hiltViewModel(),*/ navigator: DestinationsNavigator) {
+fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(), locationVM : ApplicationViewModel = hiltViewModel(), navigator: DestinationsNavigator) {
     DashboardTestScreen(
         isLocationEnabled = permissionsVM.locationChecker.locationState.value,
         accessFineLocationState = rememberPermissionState(android.Manifest.permission.ACCESS_FINE_LOCATION),
-        //locations = locationVM.getLocationLiveData().observe(),
+        //location = locationVM.getLocationLiveData().observeAsState(),
         navigator = navigator
     )
 }
 
+@SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalPermissionsApi::class)
 @Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
@@ -161,6 +190,7 @@ fun DashboardTestScreenPreview() {
             DashboardTestScreen(
                 isLocationEnabled = false,
                 accessFineLocationState = PermissionsStatePreview(),
+                //location = mutableStateOf<LocationDetails?>(null),
                 navigator = EmptyDestinationsNavigator
             )
         }

@@ -4,6 +4,7 @@ import android.provider.ContactsContract.RawContacts.Data
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph
 //import com.example.profiscooterex.data.userDB.DataViewModel
 //import com.example.profiscooterex.navigation.AppNavHost
@@ -17,6 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     //private val dataViewModel by viewModels<DataViewModel>()
+    private val applicationViewModel: ApplicationViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

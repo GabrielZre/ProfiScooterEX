@@ -20,4 +20,5 @@ class ApplicationViewModel
     fun startLocationUpdates() {
         locationLiveData.startLocationUpdates()
     }
+
 }
