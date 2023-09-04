@@ -17,4 +17,6 @@ import javax.inject.Inject
 class PermissionsViewModel @Inject constructor(
     private val permissionChecker: PermissionChecker,
     val locationChecker: LocationChecker,
-) : ViewModel() {}
+) : ViewModel() {
+
+}
