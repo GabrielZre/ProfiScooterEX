@@ -54,6 +54,7 @@ fun DashboardTestScreen(
     isBluetoothEnabled : Boolean,
     locationPermissionState : PermissionState,
     bluetoothPermissionsState : MultiplePermissionsState,
+    requestForLocation: () -> Unit,
     requestForBluetooth: () -> Unit,
     navigator: DestinationsNavigator,
     distanceTrip: Float,
@@ -67,7 +68,8 @@ fun DashboardTestScreen(
     bleConnectionState: ConnectionState,
     bleInitializingMessage: String?,
     bleErrorMessage: String?,
-    batteryVoltage: Float
+    batteryVoltage: Float,
+    deviceBatteryVoltage: Float
     ) {
 
     val spacing = MaterialTheme.spacing
@@ -90,21 +92,21 @@ fun DashboardTestScreen(
                     onClick = start,
                     modifier = Modifier
                 ) {
-                    Text(text = "StartD")
+                    Text(text = "Start")
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Button(
                     onClick = stop,
                     modifier = Modifier
                 ) {
-                    Text(text = "PauseD")
+                    Text(text = "Pause")
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Button(
                     onClick = restart,
                     modifier = Modifier
                 ) {
-                    Text(text = "RestartD")
+                    Text(text = "Restart")
                 }
             }
             Row {
@@ -182,6 +184,12 @@ fun DashboardTestScreen(
                 )
             }*/
 
+            Button(
+                onClick = requestForLocation,
+                modifier = Modifier
+            ) {
+                Text(text = "Request Location")
+            }
 
 
             if(!locationPermissionState.status.isGranted) {
@@ -217,7 +225,7 @@ fun DashboardTestScreen(
                     onClick = { bluetoothPermissionsState.launchMultiplePermissionRequest() },
                     modifier = Modifier
                 ) {
-                    Text(text = "Request bluetooth Permissions")
+                    Text(text = "Request bluetooth permissions")
                 }
             } else {
                 Text(text = "Bluetooth permissions OK")
@@ -234,7 +242,7 @@ fun DashboardTestScreen(
                     onClick = reconnectBLE,
                     modifier = Modifier
                 ) {
-                    Text(text = "reconnect")
+                    Text(text = "restart")
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Button(
@@ -311,6 +319,10 @@ fun DashboardTestScreen(
                             text = "Battery Voltage: $batteryVoltage",
                             style = MaterialTheme.typography.headlineSmall
                         )
+                        Text(
+                            text = "Device Battery: $deviceBatteryVoltage",
+                            style = MaterialTheme.typography.headlineSmall
+                        )
                     }
                     Log.d("tag", "OK")
                 }else if(bleConnectionState == ConnectionState.Disconnected){
@@ -381,6 +393,7 @@ fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
         isBluetoothEnabled = permissionsVM.bluetoothChecker.bluetoothState.value,
         locationPermissionState = locationPermissionState,
         bluetoothPermissionsState = bluetoothPermissionsState,
+        requestForLocation = permissionsVM::requestForLocation,
         requestForBluetooth = permissionsVM::requestForBluetooth,
         navigator = navigator,
         distanceTrip = dashboardViewModel.distanceTrip,
@@ -394,7 +407,8 @@ fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
         bleConnectionState = dashboardViewModel.bleConnectionState,
         bleInitializingMessage = dashboardViewModel.bleInitializingMessage,
         bleErrorMessage = dashboardViewModel.bleErrorMessage,
-        batteryVoltage = dashboardViewModel.batteryVoltage
+        batteryVoltage = dashboardViewModel.batteryVoltage,
+        deviceBatteryVoltage = dashboardViewModel.deviceBatteryVoltage
     )
 }
 
@@ -410,6 +424,7 @@ fun DashboardTestScreenPreview() {
                 isBluetoothEnabled = false,
                 locationPermissionState = PermissionsStatePreview(),
                 bluetoothPermissionsState = MultiplePermissionsStatePreview(),
+                requestForLocation = {},
                 requestForBluetooth = {},
                 navigator = EmptyDestinationsNavigator,
                 distanceTrip = 0f,
@@ -423,7 +438,8 @@ fun DashboardTestScreenPreview() {
                 bleConnectionState = ConnectionState.CurrentlyInitializing,
                 bleInitializingMessage = "Initializing...",
                 bleErrorMessage = "Error...",
-                batteryVoltage = 2f
+                batteryVoltage = 2f,
+                deviceBatteryVoltage = 2f
             )
         }
     }

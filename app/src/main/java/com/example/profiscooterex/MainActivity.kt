@@ -2,11 +2,15 @@ package com.example.profiscooterex
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.content.Intent
+import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.profiscooterex.permissions.service.RequestServiceListener
 import com.example.profiscooterex.permissions.service.RequestServicesListener
@@ -23,9 +27,10 @@ import javax.inject.Inject
 class MainActivity: AppCompatActivity(), RequestServicesListener {
 
     @Inject lateinit var bluetoothAdapter: BluetoothAdapter
+    @Inject lateinit var locationManager: LocationManager
 
     @Inject lateinit var requestServiceListener: RequestServiceListener
-    //private val viewModel: PermissionsViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -39,12 +44,15 @@ class MainActivity: AppCompatActivity(), RequestServicesListener {
     override fun onDestroy() {
         super.onDestroy()
         requestServiceListener.removeListener(this)
-        Log.d("tag","onDESTROY")
     }
-    private fun startBLE() {
-        showBluetoothDialog()
-        Log.d("tag","Called from MAIN RFB2")
 
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    private fun startLocation() {
+        showLocationDialog()
+    }
+    private fun startBluetooth() {
+        showBluetoothDialog()
     }
 
     private fun showBluetoothDialog() {
@@ -53,6 +61,22 @@ class MainActivity: AppCompatActivity(), RequestServicesListener {
             startBluetoothIntentForResult.launch(enableBluetoothIntent)
         }
     }
+    @RequiresApi(Build.VERSION_CODES.P)
+    private fun showLocationDialog() {
+        if(!locationManager.isLocationEnabled) {
+            val enableLocationIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+            startLocationIntentForResult.launch(enableLocationIntent)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    private val startLocationIntentForResult =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                result ->
+            if(result.resultCode != Activity.RESULT_OK) {
+                showLocationDialog()
+            }
+        }
 
     private val startBluetoothIntentForResult =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -62,10 +86,12 @@ class MainActivity: AppCompatActivity(), RequestServicesListener {
             }
         }
 
-    override fun requestBluetooth() {
-        startBLE()
-        Log.d("tag","Called from MAIN RFB1")
+    @RequiresApi(Build.VERSION_CODES.P)
+    override fun requestLocation() {
+        startLocation()
     }
-
+    override fun requestBluetooth() {
+        startBluetooth()
+    }
 
 }

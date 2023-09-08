@@ -32,6 +32,8 @@ class DashboardViewModel
         private set
     var batteryVoltage by mutableStateOf(0f)
         private set
+    var deviceBatteryVoltage by mutableStateOf(0f)
+        private set
 
     var bleConnectionState by mutableStateOf<ConnectionState>(ConnectionState.Uninitialized)
 
@@ -42,6 +44,7 @@ class DashboardViewModel
                     is Resource.Success -> {
                         bleConnectionState = result.data.connectionState
                         batteryVoltage = result.data.batteryVoltage
+                        deviceBatteryVoltage = result.data.deviceBatteryVoltage
                     }
 
                     is Resource.Loading -> {

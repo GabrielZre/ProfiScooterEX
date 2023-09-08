@@ -3,6 +3,7 @@ package com.example.profiscooterex.di
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.location.LocationManager
 import com.example.profiscooterex.MainActivity
 import com.example.profiscooterex.data.AuthRepository
 import com.example.profiscooterex.data.AuthRepositoryImpl
@@ -29,9 +30,16 @@ class AppModule {
 
     @Provides
     @Singleton
+    fun provideLocationManager(@ApplicationContext context: Context): LocationManager {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager
+    }
+
+    @Provides
+    @Singleton
     fun provideBluetoothAdapter(@ApplicationContext context: Context): BluetoothAdapter {
-        val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        return manager.adapter
+        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        return bluetoothManager.adapter
     }
 
     @Provides

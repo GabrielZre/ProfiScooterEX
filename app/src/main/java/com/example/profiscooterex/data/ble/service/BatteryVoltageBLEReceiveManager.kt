@@ -78,7 +78,7 @@ class BatteryVoltageBLEReceiveManager @Inject constructor(
                     this@BatteryVoltageBLEReceiveManager.gatt = gatt
                 } else if(newState == BluetoothProfile.STATE_DISCONNECTED) {
                     coroutineScope.launch {
-                        data.emit(Resource.Success(data = BatteryVoltageResult(0f, ConnectionState.Disconnected)))
+                        data.emit(Resource.Success(data = BatteryVoltageResult(0f, 0f, ConnectionState.Disconnected)))
                     }
                     gatt.close()
                 }
@@ -126,16 +126,24 @@ class BatteryVoltageBLEReceiveManager @Inject constructor(
         override fun onCharacteristicChanged(
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic,
+            value: ByteArray
         ) {
             with(characteristic) {
                 when(uuid) {
                     UUID.fromString(BATTERY_VOLTAGE_CHARACTERISTICS_UUID) -> {
-                        val multiplicator = if(value.first().toInt() > 0) -1 else 1
-                        val batteryVoltage = value[1].toInt() + value[2].toInt() / 10f
+                        val valuesData = String(value, Charsets.UTF_8)
+                        val values = valuesData.split(",")
+
+                        val humidity = values[0].toFloat()
+                        val batteryVoltage = values[1].toFloat()
+
                         val batteryVoltageResult = BatteryVoltageResult(
-                            multiplicator * batteryVoltage,
+                            humidity,
+                            batteryVoltage,
                             ConnectionState.Connected
                         )
+
+
                         coroutineScope.launch {
                             data.emit(
                                 Resource.Success(data = batteryVoltageResult)
@@ -211,7 +219,7 @@ class BatteryVoltageBLEReceiveManager @Inject constructor(
         val cccdUuid = UUID.fromString(CCCD_DESCRIPTOR_UUID)
         characteristic.getDescriptor(cccdUuid)?.let {cccdDescriptor ->
             if(gatt?.setCharacteristicNotification(characteristic, false) == false) {
-                Log.d("BatteryVoltageReceiveManager", "set characteristics notification failed")
+                Log.d("BatteryReceiveManager", "set characteristics notification failed")
                 return
             }
             writeDescription(cccdDescriptor, BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE)

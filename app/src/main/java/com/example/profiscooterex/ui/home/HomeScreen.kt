@@ -65,20 +65,6 @@ fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), userDataViewModel: D
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface
         )
-        Button(
-            onClick = {
-                viewModel?.logout()
-                /*navController.navigate(ROUTE_LOGIN) {
-                    popUpTo(ROUTE_HOME) { inclusive = true }
-                }*/
-                navigator.navigate(LoginScreenDestination) {
-                    popUpTo(LoginScreenDestination.route) {inclusive = true}
-                }
-            },
-            modifier = Modifier
-            ) {
-            Text(text = stringResource(id = R.string.logout))
-        }
     }
 
     Column(
@@ -101,12 +87,6 @@ fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), userDataViewModel: D
                     .fillMaxWidth()
                     .wrapContentHeight()
             ) {
-                Text(
-                    text = stringResource(id = R.string.name),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(0.2f),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
 
                 Text(
                     text = getUserData?.nick ?: "",
@@ -118,6 +98,21 @@ fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), userDataViewModel: D
                 Column() {
                     Button(
                         onClick = {
+                            viewModel?.logout()
+                            /*navController.navigate(ROUTE_LOGIN) {
+                                popUpTo(ROUTE_HOME) { inclusive = true }
+                            }*/
+                            navigator.navigate(LoginScreenDestination) {
+                                popUpTo(LoginScreenDestination.route) {inclusive = true}
+                            }
+                        },
+                        modifier = Modifier
+                    ) {
+                        Text(text = stringResource(id = R.string.logout))
+                    }
+
+                    Button(
+                        onClick = {
                             navigator.navigate(DashboardScreenDestination) {
                                 popUpTo(DashboardScreenDestination.route) {inclusive = true}
                             }
@@ -126,6 +121,7 @@ fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), userDataViewModel: D
                     ) {
                         Text(text = stringResource(id = R.string.dashboard))
                     }
+
                     Button(
                         onClick = {
                             navigator.navigate(DashboardTestScreenDestination) {
@@ -136,6 +132,7 @@ fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), userDataViewModel: D
                     ) {
                         Text(text = "DashboardTest")
                     }
+
                 }
 
             }

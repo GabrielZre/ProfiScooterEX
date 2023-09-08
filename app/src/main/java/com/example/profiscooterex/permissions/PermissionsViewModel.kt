@@ -16,8 +16,13 @@ class PermissionsViewModel @Inject constructor(
     private val requestServiceListener: RequestServiceListener
 ) : ViewModel() {
 
+    fun requestForLocation() {
+        requestServiceListener.notifyLocationListeners()
+        Log.d("tag", "Called RFBFROM SVM")
+    }
+
     fun requestForBluetooth() {
-        requestServiceListener.notifyListeners()
+        requestServiceListener.notifyBluetoothListeners()
         Log.d("tag", "Called RFBFROM SVM")
     }
 

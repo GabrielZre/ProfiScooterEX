@@ -12,11 +12,11 @@ class RequestServiceListener @Inject constructor(){
     fun removeListener (listener: RequestServicesListener) {
         serviceCallListener.remove(listener)
     }
-    fun notifyListeners () {
-        Log.d("tag", "NOTIFIED FROM RSL")
+    fun notifyLocationListeners() {
+        serviceCallListener.forEach { it.requestLocation() }
+    }
+    fun notifyBluetoothListeners() {
         serviceCallListener.forEach { it.requestBluetooth() }
     }
-    init {
-        Log.d("tag", "inited RSL")
-    }
+
 }
