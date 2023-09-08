@@ -1,4 +1,4 @@
-package com.example.profiscooterex.location
+package com.example.profiscooterex.permissions.location
 
 import androidx.compose.runtime.MutableState
 

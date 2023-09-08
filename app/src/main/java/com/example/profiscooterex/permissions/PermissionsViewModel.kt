@@ -1,22 +1,24 @@
 package com.example.profiscooterex.permissions
 
-import android.Manifest
-import android.os.Build
-import androidx.compose.runtime.mutableStateOf
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.profiscooterex.location.LocationChecker
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberPermissionState
+import com.example.profiscooterex.permissions.bluetooth.BluetoothChecker
+import com.example.profiscooterex.permissions.location.LocationChecker
+import com.example.profiscooterex.permissions.service.RequestServiceListener
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.properties.Delegates
 
 @HiltViewModel
 class PermissionsViewModel @Inject constructor(
-    private val permissionChecker: PermissionChecker,
     val locationChecker: LocationChecker,
+    val bluetoothChecker: BluetoothChecker,
+    private val requestServiceListener: RequestServiceListener
 ) : ViewModel() {
+
+    fun requestForBluetooth() {
+        requestServiceListener.notifyListeners()
+        Log.d("tag", "Called RFBFROM SVM")
+    }
 
 }

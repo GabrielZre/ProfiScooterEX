@@ -3,31 +3,29 @@ import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import android.os.Bundle
-import android.provider.ContactsContract.RawContacts.Data
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavGraph
-import com.example.profiscooterex.permissions.PermissionsViewModel
+import com.example.profiscooterex.permissions.service.RequestServiceListener
+import com.example.profiscooterex.permissions.service.RequestServicesListener
+import com.example.profiscooterex.permissions.service.ServiceViewModel
 //import com.example.profiscooterex.data.userDB.DataViewModel
 //import com.example.profiscooterex.navigation.AppNavHost
-import com.example.profiscooterex.ui.auth.AuthViewModel
 import com.example.profiscooterex.ui.NavGraphs
-import com.example.profiscooterex.ui.dashboard.DashboardViewModel
 import com.example.profiscooterex.ui.theme.AppTheme
 import com.ramcosta.composedestinations.DestinationsNavHost
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity: AppCompatActivity() {
+class MainActivity: AppCompatActivity(), RequestServicesListener {
 
     @Inject lateinit var bluetoothAdapter: BluetoothAdapter
 
-    private val viewModel: PermissionsViewModel by viewModels()
-
+    @Inject lateinit var requestServiceListener: RequestServiceListener
+    //private val viewModel: PermissionsViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -35,10 +33,18 @@ class MainActivity: AppCompatActivity() {
                 DestinationsNavHost(navGraph = NavGraphs.root)
             }
         }
-
+        requestServiceListener.addListener(this)
     }
-    fun startBLE() {
+
+    override fun onDestroy() {
+        super.onDestroy()
+        requestServiceListener.removeListener(this)
+        Log.d("tag","onDESTROY")
+    }
+    private fun startBLE() {
         showBluetoothDialog()
+        Log.d("tag","Called from MAIN RFB2")
+
     }
 
     private fun showBluetoothDialog() {
@@ -55,6 +61,11 @@ class MainActivity: AppCompatActivity() {
                 showBluetoothDialog()
             }
         }
+
+    override fun requestBluetooth() {
+        startBLE()
+        Log.d("tag","Called from MAIN RFB1")
+    }
 
 
 }

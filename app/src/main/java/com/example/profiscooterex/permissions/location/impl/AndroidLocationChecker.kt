@@ -1,4 +1,4 @@
-package com.example.profiscooterex.location.impl
+package com.example.profiscooterex.permissions.location.impl
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -7,7 +7,7 @@ import android.content.IntentFilter
 import android.location.LocationManager
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.location.LocationManagerCompat
-import com.example.profiscooterex.location.LocationChecker
+import com.example.profiscooterex.permissions.location.LocationChecker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 

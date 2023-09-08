@@ -1,9 +1,12 @@
 package com.example.profiscooterex.di
 
-import com.example.profiscooterex.location.LocationChecker
-import com.example.profiscooterex.location.impl.AndroidLocationChecker
+import com.example.profiscooterex.permissions.location.LocationChecker
+import com.example.profiscooterex.permissions.location.impl.AndroidLocationChecker
 import com.example.profiscooterex.permissions.PermissionChecker
+import com.example.profiscooterex.permissions.bluetooth.BluetoothChecker
+import com.example.profiscooterex.permissions.bluetooth.impl.AndroidBluetoothChecker
 import com.example.profiscooterex.permissions.impl.AndroidPermissionChecker
+import com.example.profiscooterex.permissions.service.RequestServiceListener
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,6 +26,12 @@ class ActivityRetainedModule {
     @ActivityRetainedScoped
     @Provides
     fun provideLocationChecker(impl: AndroidLocationChecker) : LocationChecker {
+        return impl
+    }
+
+    @ActivityRetainedScoped
+    @Provides
+    fun provideBluetoothChecker(impl: AndroidBluetoothChecker) : BluetoothChecker {
         return impl
     }
 }
