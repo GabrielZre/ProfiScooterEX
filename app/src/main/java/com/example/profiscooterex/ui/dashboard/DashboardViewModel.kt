@@ -62,11 +62,12 @@ class DashboardViewModel
     }
 
     fun disconnectBLE() {
+        bleErrorMessage = null
+        bleConnectionState = ConnectionState.Uninitialized
         batteryVoltageReceiveManager.disconnect()
+        batteryVoltageReceiveManager.closeConnection()
     }
-    fun reconnectBLE() {
-        batteryVoltageReceiveManager.reconnect()
-    }
+
     fun initializeBLEConnection() {
         bleErrorMessage = null
         subscribeToChanges()

@@ -11,7 +11,6 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
-import android.util.Log
 import com.example.profiscooterex.data.ble.BatteryVoltageReceiveManager
 import com.example.profiscooterex.data.ble.BatteryVoltageResult
 import com.example.profiscooterex.data.ble.ConnectionState
@@ -65,7 +64,7 @@ class BatteryVoltageBLEReceiveManager @Inject constructor(
     }
 
     private var currentConnectionAttempt = 1
-    private var MAXIMUM_CONNECTION_ATTEMPTS = 5
+    private var MAXIMUM_CONNECTION_ATTEMPTS = 2
 
     private val gattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
@@ -92,9 +91,12 @@ class BatteryVoltageBLEReceiveManager @Inject constructor(
                         )
                     )
                 }
+
                 if(currentConnectionAttempt <= MAXIMUM_CONNECTION_ATTEMPTS) {
                     startReceiving()
                 } else {
+                    gatt.close()
+                    gatt.disconnect()
                     coroutineScope.launch {
                         data.emit(Resource.Error(errorMessage = "Could not connect to ble device"))
                     }
@@ -168,7 +170,6 @@ class BatteryVoltageBLEReceiveManager @Inject constructor(
         }
         characteristic.getDescriptor(cccdUuid)?.let { cccdDescriptor ->
             if(gatt?.setCharacteristicNotification(characteristic, true) == false) {
-                Log.d("BLEReceiveManager", "set characteristics notification failed")
                 return
             }
             writeDescription(cccdDescriptor, payload)
@@ -219,7 +220,6 @@ class BatteryVoltageBLEReceiveManager @Inject constructor(
         val cccdUuid = UUID.fromString(CCCD_DESCRIPTOR_UUID)
         characteristic.getDescriptor(cccdUuid)?.let {cccdDescriptor ->
             if(gatt?.setCharacteristicNotification(characteristic, false) == false) {
-                Log.d("BatteryReceiveManager", "set characteristics notification failed")
                 return
             }
             writeDescription(cccdDescriptor, BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE)

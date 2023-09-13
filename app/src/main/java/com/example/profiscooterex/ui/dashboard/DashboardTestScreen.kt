@@ -63,7 +63,6 @@ fun DashboardTestScreen(
     stop: () -> Unit,
     restart: () -> Unit,
     initializeBLE: () -> Unit,
-    reconnectBLE: () -> Unit,
     disconnectBLE: () -> Unit,
     bleConnectionState: ConnectionState,
     bleInitializingMessage: String?,
@@ -239,13 +238,6 @@ fun DashboardTestScreen(
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Button(
-                    onClick = reconnectBLE,
-                    modifier = Modifier
-                ) {
-                    Text(text = "restart")
-                }
-                Spacer(modifier = Modifier.width(10.dp))
-                Button(
                     onClick = disconnectBLE,
                     modifier = Modifier
                 ) {
@@ -402,7 +394,6 @@ fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
         stop = dashboardViewModel::stop,
         restart = dashboardViewModel::restart,
         initializeBLE = dashboardViewModel::initializeBLEConnection,
-        reconnectBLE = dashboardViewModel::reconnectBLE,
         disconnectBLE = dashboardViewModel::disconnectBLE,
         bleConnectionState = dashboardViewModel.bleConnectionState,
         bleInitializingMessage = dashboardViewModel.bleInitializingMessage,
@@ -433,7 +424,6 @@ fun DashboardTestScreenPreview() {
                 stop = {},
                 restart = {},
                 initializeBLE = {},
-                reconnectBLE = {},
                 disconnectBLE = {},
                 bleConnectionState = ConnectionState.CurrentlyInitializing,
                 bleInitializingMessage = "Initializing...",
