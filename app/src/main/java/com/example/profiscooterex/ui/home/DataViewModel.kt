@@ -1,29 +1,37 @@
 
-package com.example.profiscooterex.data.userDB
+package com.example.profiscooterex.ui.home
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.profiscooterex.data.AuthRepository
-import com.example.profiscooterex.data.userDB.Trip
-import com.example.profiscooterex.ui.auth.AuthViewModel
+import com.example.profiscooterex.data.Resource
+import com.example.profiscooterex.data.userDB.TripDetails
+import com.example.profiscooterex.data.userDB.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+
 
 @HiltViewModel
 class DataViewModel @Inject constructor(
 ) : ViewModel() {
 
+    private val _sendTripFlow = MutableStateFlow<Resource<Boolean>?>(null)
+    val sendTripFlow: StateFlow<Resource<Boolean>?> = _sendTripFlow
+
     val userDataState  = mutableStateOf(User())
-    val tripsDataState  = mutableStateOf<List<Trip>>(emptyList())
+    val tripsDataState  = mutableStateOf<List<TripDetails>>(emptyList())
 
     init {
         getUserData()
@@ -43,6 +51,13 @@ class DataViewModel @Inject constructor(
             tripsDataState.value = getTripDataFromDB()
         }
 
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun sendTripData(trip: TripDetails) {
+        viewModelScope.launch {
+            sendTripDataToDB(trip, _sendTripFlow)
+        }
     }
 
 }
@@ -67,19 +82,19 @@ suspend fun getUserDataFromDB() : User {
 }
 
 
-suspend fun getTripDataFromDB() : ArrayList<Trip> {
+suspend fun getTripDataFromDB() : ArrayList<TripDetails> {
     val currentUser = FirebaseAuth.getInstance().currentUser
     val reference = FirebaseDatabase.getInstance()
         .getReference("Users")
 
-    var tripData = Trip()
-    var tripsListData : ArrayList<Trip> = ArrayList()
+    var tripData = TripDetails()
+    var tripsListData : ArrayList<TripDetails> = ArrayList()
 
     val snapshot = reference.child(currentUser?.uid!!).child("trips").get().await()
 
     for(dataSnapshot : DataSnapshot in snapshot.children) {
         try {
-            tripData = dataSnapshot.getValue(Trip::class.java)!!
+            tripData = dataSnapshot.getValue(TripDetails::class.java)!!
             tripsListData.add(tripData)
         } catch (e: Exception) {
             Log.d("error", "getTripDataFromDB: $e")
@@ -96,6 +111,29 @@ suspend fun getTripDataFromDB() : ArrayList<Trip> {
     }
 
     return tripsListData
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+suspend fun sendTripDataToDB(trip: TripDetails, sendTripFlow: MutableStateFlow<Resource<Boolean>?>)  {
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    val reference = FirebaseDatabase.getInstance()
+        .getReference("Users")
+
+    val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd ' ' HH:mm")
+    val date = LocalDate.now().format(formatter)
+
+
+    sendTripFlow.value = Resource.Loading
+    reference.child(currentUser?.uid!!).child("trips")
+        .child(date)
+        .setValue(trip)
+        .addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                sendTripFlow.value = Resource.Success(true)
+            } else {
+                sendTripFlow.value = Resource.Failure(Exception(task.exception?.message ?: "Błąd"))
+            }
+        }
 }
 
 

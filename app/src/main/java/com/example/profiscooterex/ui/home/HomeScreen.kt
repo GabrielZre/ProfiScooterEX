@@ -1,37 +1,24 @@
 package com.example.profiscooterex.ui.home
 
-import android.content.ClipData
 import android.content.res.Configuration
-import android.graphics.Paint.Align
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.profiscooterex.R
-import com.example.profiscooterex.data.userDB.DataViewModel
-//import com.example.profiscooterex.data.userDB.DataViewModel
-import com.example.profiscooterex.data.userDB.Trip
+import com.example.profiscooterex.data.userDB.TripDetails
 import com.example.profiscooterex.ui.auth.AuthViewModel
 import com.example.profiscooterex.ui.destinations.DashboardScreenDestination
 import com.example.profiscooterex.ui.destinations.DashboardTestScreenDestination
@@ -41,8 +28,6 @@ import com.example.profiscooterex.ui.theme.spacing
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
-import com.ramcosta.composedestinations.navigation.popUpTo
-import java.util.LinkedList
 
 @Destination
 @Composable
@@ -152,7 +137,7 @@ fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), userDataViewModel: D
 }
 
 @Composable
-fun HistoryTrips(getTripData : List<Trip>) {
+fun HistoryTrips(getTripData : List<TripDetails>) {
     Column() {
         Row(
             modifier = Modifier
@@ -185,7 +170,7 @@ private fun TextWithPadding(text: String, modifier: Modifier) {
 }
 
 @Composable
-fun HistoryItem(trip : Trip) {
+fun HistoryItem(trip : TripDetails) {
     Column() {
         Row(
             modifier = Modifier
@@ -212,7 +197,7 @@ fun HistoryItem(trip : Trip) {
 }
 
 val sampleTrips = listOf(
-    Trip(
+    TripDetails(
         dateTime = "2023-08-21 10:00 AM",
         tripName = "Trip to Park",
         totalDistance = "10 km",
@@ -220,7 +205,7 @@ val sampleTrips = listOf(
         averageSpeed = "10 km/h",
         batteryDrain = "30%"
     ),
-    Trip(
+    TripDetails(
         dateTime = "2023-08-22 2:30 PM",
         tripName = "City Exploration",
         totalDistance = "20 km",
@@ -231,7 +216,7 @@ val sampleTrips = listOf(
 )
 
 val sampleTrip =
-    Trip(
+    TripDetails(
         dateTime = "2023-08-21 10:00 AM",
         tripName = "Trip to Park",
         totalDistance = "10 km",

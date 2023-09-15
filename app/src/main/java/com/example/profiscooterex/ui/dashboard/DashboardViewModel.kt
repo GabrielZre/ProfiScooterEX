@@ -1,6 +1,8 @@
 package com.example.profiscooterex.ui.dashboard
 
 import android.app.Application
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -12,16 +14,24 @@ import androidx.lifecycle.viewModelScope
 import com.example.profiscooterex.data.ble.BatteryVoltageReceiveManager
 import com.example.profiscooterex.data.ble.ConnectionState
 import com.example.profiscooterex.data.userDB.LocationDetails
+import com.example.profiscooterex.data.userDB.TripDetails
 import com.example.profiscooterex.location.LocationLiveData
+import com.example.profiscooterex.ui.home.DataViewModel
 import com.example.profiscooterex.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.util.Timer
+import java.util.TimerTask
 import javax.inject.Inject
+import kotlin.concurrent.timerTask
+import kotlin.math.roundToInt
+
 
 @HiltViewModel
 class DashboardViewModel
 @Inject constructor(
     application: Application,
+    private val dataViewModel: DataViewModel,
     private val batteryVoltageReceiveManager: BatteryVoltageReceiveManager
 ) : AndroidViewModel(application) {
 
@@ -36,6 +46,57 @@ class DashboardViewModel
         private set
 
     var bleConnectionState by mutableStateOf<ConnectionState>(ConnectionState.Uninitialized)
+
+
+    var distanceTrip by mutableFloatStateOf(0f)
+    var currentSpeed by mutableFloatStateOf(0f)
+
+    private var timer = Timer()
+    private var time : Double = 0.0
+
+    var distanceTime by mutableStateOf("00:00:00")
+
+    val timerTask = object : TimerTask() {
+        override fun run() {
+            viewModelScope.launch {
+                time++
+                getTimerText(time.roundToInt())
+            }
+        }
+    }
+    fun startTimer() {
+        timer.scheduleAtFixedRate(timerTask, 0, 1000)
+    }
+
+    fun stopTimer() {
+        timerTask.cancel()
+    }
+
+    fun resetTimer() {
+        timerTask.cancel()
+        timer.cancel()
+        getTimerText(0)
+        time = 0.0
+    }
+
+    private fun getTimerText(time: Int) {
+        distanceTime = String.format("%02d", time % 86400 / 3600) + " : " + String.format(
+            "%02d",
+            time % 86400 % 3600 / 60
+        ) + " : " + String.format("%02d", time % 86400 % 3600 % 60)
+    }
+
+    private val locationLiveData = LocationLiveData(application)
+
+
+    private val locationObserver = Observer<LocationDetails> { tripData ->
+        tripData.let {
+            distanceTrip = tripData.distanceTrip
+            currentSpeed = tripData.currentSpeed
+        }
+    }
+
+    var trip by mutableStateOf(TripDetails())
 
     private fun subscribeToChanges() {
         viewModelScope.launch {
@@ -79,19 +140,6 @@ class DashboardViewModel
         batteryVoltageReceiveManager.closeConnection()
     }
 
-
-    var distanceTrip by mutableFloatStateOf(0f)
-    var currentSpeed by mutableFloatStateOf(0f)
-    private val locationLiveData = LocationLiveData(application)
-
-
-    private val locationObserver = Observer<LocationDetails> { tripData ->
-        tripData.let {
-            distanceTrip = tripData.distanceTrip
-            currentSpeed = tripData.currentSpeed
-        }
-    }
-
     fun start(lifecycleOwner : LifecycleOwner) {
         locationStartObserver(locationLiveData, lifecycleOwner, locationObserver)
     }
@@ -103,5 +151,10 @@ class DashboardViewModel
     fun stop() {
         locationLiveData.removeLocationUpdates()
         locationRemoveObserver(locationLiveData, locationObserver)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun saveTrip(trip: TripDetails) {
+        dataViewModel.sendTripData(trip)
     }
 }

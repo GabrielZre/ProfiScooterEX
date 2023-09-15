@@ -64,11 +64,14 @@ fun DashboardTestScreen(
     restart: () -> Unit,
     initializeBLE: () -> Unit,
     disconnectBLE: () -> Unit,
+    startTimer: () -> Unit,
+    resetTimer: () -> Unit,
     bleConnectionState: ConnectionState,
     bleInitializingMessage: String?,
     bleErrorMessage: String?,
     batteryVoltage: Float,
-    deviceBatteryVoltage: Float
+    deviceBatteryVoltage: Float,
+    distanceTime: String
     ) {
 
     val spacing = MaterialTheme.spacing
@@ -158,6 +161,12 @@ fun DashboardTestScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
+            Text(
+                text = "Distance time: $distanceTime" ,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
 
             /*Text(
                 text = "Latitude: $latitude",
@@ -212,6 +221,18 @@ fun DashboardTestScreen(
                 modifier = Modifier
             ) {
                 Text(text = "Home")
+            }
+            Button(
+                onClick = startTimer,
+                modifier = Modifier
+            ) {
+                Text(text = "startTimer")
+            }
+            Button(
+                onClick = resetTimer,
+                modifier = Modifier
+            ) {
+                Text(text = "resetTimer")
             }
             Button(
                 onClick = requestForBluetooth,
@@ -395,11 +416,14 @@ fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
         restart = dashboardViewModel::restart,
         initializeBLE = dashboardViewModel::initializeBLEConnection,
         disconnectBLE = dashboardViewModel::disconnectBLE,
+        startTimer = dashboardViewModel::startTimer,
+        resetTimer = dashboardViewModel::resetTimer,
         bleConnectionState = dashboardViewModel.bleConnectionState,
         bleInitializingMessage = dashboardViewModel.bleInitializingMessage,
         bleErrorMessage = dashboardViewModel.bleErrorMessage,
         batteryVoltage = dashboardViewModel.batteryVoltage,
-        deviceBatteryVoltage = dashboardViewModel.deviceBatteryVoltage
+        deviceBatteryVoltage = dashboardViewModel.deviceBatteryVoltage,
+        distanceTime = dashboardViewModel.distanceTime
     )
 }
 
@@ -425,11 +449,14 @@ fun DashboardTestScreenPreview() {
                 restart = {},
                 initializeBLE = {},
                 disconnectBLE = {},
+                startTimer = {},
+                resetTimer = {},
                 bleConnectionState = ConnectionState.CurrentlyInitializing,
                 bleInitializingMessage = "Initializing...",
                 bleErrorMessage = "Error...",
                 batteryVoltage = 2f,
-                deviceBatteryVoltage = 2f
+                deviceBatteryVoltage = 2f,
+                distanceTime = ""
             )
         }
     }
