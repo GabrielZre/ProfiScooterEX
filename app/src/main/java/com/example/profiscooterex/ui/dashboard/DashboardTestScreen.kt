@@ -1,7 +1,9 @@
 package com.example.profiscooterex.ui.dashboard
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -64,8 +66,9 @@ fun DashboardTestScreen(
     restart: () -> Unit,
     initializeBLE: () -> Unit,
     disconnectBLE: () -> Unit,
-    startTimer: () -> Unit,
-    resetTimer: () -> Unit,
+    startStopWatch: () -> Unit,
+    pauseStopWatch: () -> Unit,
+    resetStopWatch: () -> Unit,
     bleConnectionState: ConnectionState,
     bleInitializingMessage: String?,
     bleErrorMessage: String?,
@@ -223,13 +226,13 @@ fun DashboardTestScreen(
                 Text(text = "Home")
             }
             Button(
-                onClick = startTimer,
+                onClick = startStopWatch,
                 modifier = Modifier
             ) {
                 Text(text = "startTimer")
             }
             Button(
-                onClick = resetTimer,
+                onClick = resetStopWatch,
                 modifier = Modifier
             ) {
                 Text(text = "resetTimer")
@@ -389,6 +392,7 @@ class MultiplePermissionsStatePreview : MultiplePermissionsState {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalPermissionsApi::class)
 @Destination
 @Composable
@@ -416,14 +420,15 @@ fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
         restart = dashboardViewModel::restart,
         initializeBLE = dashboardViewModel::initializeBLEConnection,
         disconnectBLE = dashboardViewModel::disconnectBLE,
-        startTimer = dashboardViewModel::startTimer,
-        resetTimer = dashboardViewModel::resetTimer,
+        startStopWatch = dashboardViewModel::startStopWatch,
+        pauseStopWatch = dashboardViewModel::pauseStopWatch,
+        resetStopWatch = dashboardViewModel::resetStopWatch,
         bleConnectionState = dashboardViewModel.bleConnectionState,
         bleInitializingMessage = dashboardViewModel.bleInitializingMessage,
         bleErrorMessage = dashboardViewModel.bleErrorMessage,
         batteryVoltage = dashboardViewModel.batteryVoltage,
         deviceBatteryVoltage = dashboardViewModel.deviceBatteryVoltage,
-        distanceTime = dashboardViewModel.distanceTime
+        distanceTime = dashboardViewModel.stopWatch.formattedTime
     )
 }
 
@@ -449,8 +454,9 @@ fun DashboardTestScreenPreview() {
                 restart = {},
                 initializeBLE = {},
                 disconnectBLE = {},
-                startTimer = {},
-                resetTimer = {},
+                startStopWatch = {},
+                pauseStopWatch = {},
+                resetStopWatch = {},
                 bleConnectionState = ConnectionState.CurrentlyInitializing,
                 bleInitializingMessage = "Initializing...",
                 bleErrorMessage = "Error...",

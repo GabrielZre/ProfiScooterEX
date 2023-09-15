@@ -16,15 +16,13 @@ import com.example.profiscooterex.data.ble.ConnectionState
 import com.example.profiscooterex.data.userDB.LocationDetails
 import com.example.profiscooterex.data.userDB.TripDetails
 import com.example.profiscooterex.location.LocationLiveData
+import com.example.profiscooterex.ui.dashboard.stopWatch.StopWatch
 import com.example.profiscooterex.ui.home.DataViewModel
 import com.example.profiscooterex.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import java.util.Timer
-import java.util.TimerTask
 import javax.inject.Inject
-import kotlin.concurrent.timerTask
-import kotlin.math.roundToInt
+
 
 
 @HiltViewModel
@@ -51,40 +49,7 @@ class DashboardViewModel
     var distanceTrip by mutableFloatStateOf(0f)
     var currentSpeed by mutableFloatStateOf(0f)
 
-    private var timer = Timer()
-    private var time : Double = 0.0
-
-    var distanceTime by mutableStateOf("00:00:00")
-
-    val timerTask = object : TimerTask() {
-        override fun run() {
-            viewModelScope.launch {
-                time++
-                getTimerText(time.roundToInt())
-            }
-        }
-    }
-    fun startTimer() {
-        timer.scheduleAtFixedRate(timerTask, 0, 1000)
-    }
-
-    fun stopTimer() {
-        timerTask.cancel()
-    }
-
-    fun resetTimer() {
-        timerTask.cancel()
-        timer.cancel()
-        getTimerText(0)
-        time = 0.0
-    }
-
-    private fun getTimerText(time: Int) {
-        distanceTime = String.format("%02d", time % 86400 / 3600) + " : " + String.format(
-            "%02d",
-            time % 86400 % 3600 / 60
-        ) + " : " + String.format("%02d", time % 86400 % 3600 % 60)
-    }
+    var stopWatch = StopWatch()
 
     private val locationLiveData = LocationLiveData(application)
 
@@ -151,6 +116,19 @@ class DashboardViewModel
     fun stop() {
         locationLiveData.removeLocationUpdates()
         locationRemoveObserver(locationLiveData, locationObserver)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun startStopWatch() {
+        stopWatch.start()
+    }
+
+    fun pauseStopWatch() {
+        stopWatch.pause()
+    }
+
+    fun resetStopWatch() {
+        stopWatch.reset()
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

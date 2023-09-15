@@ -10,15 +10,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 class StopWatch {
 
-    var formattedTime by mutableStateOf("00:00:000")
+    var formattedTime by mutableStateOf("00:00:00")
 
     private var coroutineScope = CoroutineScope(Dispatchers.Main)
     private var isActive = false
@@ -51,20 +54,13 @@ class StopWatch {
         coroutineScope = CoroutineScope(Dispatchers.Main)
         timeMillis = 0L
         lastTimestamp = 0L
-        formattedTime = "00:00:000"
+        formattedTime = "00:00:00"
         isActive = false
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun formatTime(timeMillis: Long): String {
-        val localDateTime = LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(timeMillis),
-            ZoneId.systemDefault()
-        )
-        val formatter = DateTimeFormatter.ofPattern(
-            "mm:ss:SSS",
-            Locale.getDefault()
-        )
-        return localDateTime.format(formatter)
+        val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
+        return sdf.format(Date(timeMillis))
     }
 }
