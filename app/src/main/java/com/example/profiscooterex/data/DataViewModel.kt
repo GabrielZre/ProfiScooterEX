@@ -1,5 +1,5 @@
 
-package com.example.profiscooterex.ui.home
+package com.example.profiscooterex.data
 
 import android.os.Build
 import android.util.Log
@@ -7,7 +7,6 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.profiscooterex.data.Resource
 import com.example.profiscooterex.data.userDB.TripDetails
 import com.example.profiscooterex.data.userDB.User
 import com.google.firebase.auth.FirebaseAuth

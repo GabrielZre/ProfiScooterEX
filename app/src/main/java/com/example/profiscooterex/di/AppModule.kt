@@ -4,13 +4,12 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.location.LocationManager
-import com.example.profiscooterex.MainActivity
 import com.example.profiscooterex.data.AuthRepository
 import com.example.profiscooterex.data.AuthRepositoryImpl
 import com.example.profiscooterex.data.ble.BatteryVoltageReceiveManager
 import com.example.profiscooterex.data.ble.service.BatteryVoltageBLEReceiveManager
 import com.example.profiscooterex.permissions.service.RequestServiceListener
-import com.example.profiscooterex.ui.home.DataViewModel
+import com.example.profiscooterex.data.DataViewModel
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides

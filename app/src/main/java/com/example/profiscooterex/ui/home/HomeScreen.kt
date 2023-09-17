@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.profiscooterex.R
+import com.example.profiscooterex.data.DataViewModel
 import com.example.profiscooterex.data.userDB.TripDetails
 import com.example.profiscooterex.ui.auth.AuthViewModel
 import com.example.profiscooterex.ui.destinations.DashboardScreenDestination

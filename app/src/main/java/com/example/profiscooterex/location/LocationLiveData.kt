@@ -1,6 +1,7 @@
 package com.example.profiscooterex.location
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
@@ -9,13 +10,18 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
 import com.example.profiscooterex.data.userDB.LocationDetails
+import com.example.profiscooterex.ui.dashboard.stopWatch.StopWatch
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import java.math.BigDecimal
+import java.math.RoundingMode
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
-class LocationLiveData(var context: Context) : LiveData<LocationDetails>() {
+class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveData<LocationDetails>() {
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     private var lastFetchedLocation : Location? = null
     private var distanceTrip : Float = 0f
@@ -36,7 +42,7 @@ class LocationLiveData(var context: Context) : LiveData<LocationDetails>() {
     private fun setTripData(location: Location?) {
         location?.let {
                 location ->
-            value = LocationDetails(calculateDistanceTrip(location, lastFetchedLocation!!), speedToKmh(location.speed))
+            value = LocationDetails(calculateDistanceTrip(location, lastFetchedLocation!!), speedToKmh(location.speed), getAveragedSpeed())
             lastFetchedLocation = location
         }
     }
@@ -46,14 +52,28 @@ class LocationLiveData(var context: Context) : LiveData<LocationDetails>() {
         return distanceTrip
     }
 
+    private fun getAveragedSpeed(): Float {
+        val seconds = stopWatch.timeMillis.toDouble().roundToInt() / 1000.0
+
+        if (seconds < 1.0) {
+            return 0.0.toFloat()
+        }
+
+        val hours = BigDecimal.valueOf(seconds % 86400 / 3600)
+            .setScale(3, RoundingMode.HALF_UP)
+            .toDouble()
+
+        return ((distanceTrip / 1000) / hours).toFloat()
+    }
+
     private fun speedToKmh(currentSpeed: Float) : Float {
         return  currentSpeed * 3.6f
     }
 
     internal fun resetLocationData() {
-        setNewLastFetchedLocation()
+        stopWatch.reset()
         distanceTrip = 0f
-        value = LocationDetails(0f, 0f)
+        value = LocationDetails(0f, 0f, 0f)
     }
 
     private fun setNewLastFetchedLocation() {
@@ -62,6 +82,7 @@ class LocationLiveData(var context: Context) : LiveData<LocationDetails>() {
     }
 
     internal fun removeLocationUpdates() {
+        stopWatch.pause()
         setNewLastFetchedLocation()
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
@@ -72,6 +93,7 @@ class LocationLiveData(var context: Context) : LiveData<LocationDetails>() {
     }
 
     private val locationCallback = object : LocationCallback() {
+        @SuppressLint("NewApi")
         override fun onLocationResult(locationResult: LocationResult) {
             super.onLocationResult(locationResult)
             locationResult ?: return
@@ -82,6 +104,7 @@ class LocationLiveData(var context: Context) : LiveData<LocationDetails>() {
             } else {
                 if (lastFetchedLocation == null) {
                     lastFetchedLocation = locationResult.lastLocation
+                    stopWatch.start()
                 }
                 if ((lastFetchedLocation?.latitude != locationResult.lastLocation?.latitude) &&
                     lastFetchedLocation?.longitude != locationResult.lastLocation?.longitude
@@ -114,11 +137,11 @@ class LocationLiveData(var context: Context) : LiveData<LocationDetails>() {
     }
 
     companion object {
-        private const val FIVE_SECS: Long = 5000
-        val locationRequest: LocationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, FIVE_SECS)
+        private const val SEC: Long = 1000
+        val locationRequest: LocationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, SEC)
             .setWaitForAccurateLocation(false)
-            .setMinUpdateIntervalMillis(FIVE_SECS)
-            .setMaxUpdateDelayMillis(FIVE_SECS)
+            .setMinUpdateIntervalMillis(SEC)
+            .setMaxUpdateDelayMillis(SEC)
             .build()
     }
 }
