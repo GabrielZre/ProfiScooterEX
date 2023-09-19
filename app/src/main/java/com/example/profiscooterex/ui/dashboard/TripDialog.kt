@@ -1,5 +1,7 @@
 package com.example.profiscooterex.ui.dashboard
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,24 +40,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.profiscooterex.data.userDB.TripDetails
 import com.example.profiscooterex.ui.theme.AppTheme
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SaveTripDialog(
     onDismissRequest: () -> Unit,
-    onConfirmation: () -> Unit,
     dialogTitle: String,
     icon: ImageVector,
-    tripName: String,
-    totalDistance: String,
-    averageSpeed: String,
-    batteryDrain: String,
-    distanceTime: String,
-    dateTime: String
 ) {
+    val viewModel: DashboardViewModel = hiltViewModel()
     var text by remember { mutableStateOf("") }
+    var tripName by remember { mutableStateOf("") }
 
     AlertDialog(
         icon = {
@@ -89,9 +88,9 @@ fun SaveTripDialog(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "Battery")
+                        Text(text = "Distance")
                         Text(
-                            text = "1"
+                            text = viewModel.distanceTrip.toString()
                         )
                     }
                     VerticalDivider()
@@ -100,9 +99,9 @@ fun SaveTripDialog(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "Battery")
+                        Text(text = "Time")
                         Text(
-                            text = "1"
+                            text = viewModel.stopWatch.formattedTime
                         )
                     }
                 }
@@ -119,9 +118,9 @@ fun SaveTripDialog(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "Battery")
+                        Text(text = "Average speed")
                         Text(
-                            text = "1"
+                            text = viewModel.averageSpeed.toString()
                         )
                     }
                     VerticalDivider()
@@ -130,9 +129,9 @@ fun SaveTripDialog(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "Battery")
+                        Text(text = "Battery drain")
                         Text(
-                            text = "1"
+                            text = viewModel.calculateBatteryDrain().toString()
                         )
                     }
                 }
@@ -144,7 +143,8 @@ fun SaveTripDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    onConfirmation()
+                    onDismissRequest
+                    viewModel.saveTrip(tripName)
                 }
             ) {
                 Text("Confirm")
@@ -162,47 +162,26 @@ fun SaveTripDialog(
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TripDialog(openAlertDialog: MutableState<Boolean>, tripDetails: TripDetails, saveTrip: Unit) {
+fun TripDialog(openAlertDialog: MutableState<Boolean>) {
     when {
         openAlertDialog.value -> {
             SaveTripDialog(
                 onDismissRequest = { openAlertDialog.value = false },
-                onConfirmation = {
-                    openAlertDialog.value = false
-                    saveTrip
-                },
                 dialogTitle = "Alert dialog example",
                 icon = Icons.Default.Info,
-                tripName = "",
-                totalDistance = tripDetails.totalDistance,
-                averageSpeed = tripDetails.averageSpeed,
-                batteryDrain = tripDetails.batteryDrain,
-                distanceTime = tripDetails.distanceTime,
-                dateTime = tripDetails.dateTime
             )
         }
     }
 }
-
-
-@Preview(showBackground = true, device = Devices.PIXEL)
-@Composable
-fun SaveTripDialogPreview() {
-    AppTheme {
-        Surface {
-            SaveTripDialog(
-                onDismissRequest = {},
-                onConfirmation = {},
-                dialogTitle = "Dialog preview",
-                icon = Icons.Default.Info,
-                tripName = "Preview example name",
-                totalDistance = "",
-                averageSpeed = "",
-                batteryDrain = "",
-                distanceTime = "0:15:23",
-                dateTime = "14.09.2023 15:33:12"
-            )
-        }
-    }
-}
+/*viewModel = {
+    openAlertDialog.value = false
+    viewModel.saveTrip()
+},
+tripName = "",
+totalDistance = tripDetails.totalDistance,
+averageSpeed = tripDetails.averageSpeed,
+batteryDrain = tripDetails.batteryDrain,
+distanceTime = tripDetails.distanceTime,
+dateTime = tripDetails.dateTime*/

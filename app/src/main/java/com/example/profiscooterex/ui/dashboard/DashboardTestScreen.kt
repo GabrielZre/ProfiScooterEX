@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.profiscooterex.data.ble.ConnectionState
 import com.example.profiscooterex.data.userDB.LocationDetails
 import com.example.profiscooterex.location.LocationLiveData
@@ -64,6 +65,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
+@SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun DashboardTestScreen(
@@ -88,11 +91,12 @@ fun DashboardTestScreen(
     batteryVoltage: Float,
     deviceBatteryVoltage: Float,
     distanceTime: String,
-    isStopWatchActive: Boolean,
-    ) {
+    isStopWatchActive: Boolean
+) {
 
     val spacing = MaterialTheme.spacing
     val coroutineScope = rememberCoroutineScope()
+    var openAlertDialog = mutableStateOf(false)
 
     Row(
         modifier = Modifier
@@ -112,7 +116,11 @@ fun DashboardTestScreen(
                     onClick = {
                         coroutineScope.launch {
                             if (!isStopWatchActive) {
-                                start()
+                                if(checkLocationPermissions(isLocationEnabled, locationPermissionState)) {
+                                    start()
+                                } else {
+                                    requestLocationPermissions(isLocationEnabled, requestForLocation, locationPermissionState)
+                                }
                             } else {
                                 stop()
                             }
@@ -121,13 +129,6 @@ fun DashboardTestScreen(
                     modifier =  Modifier
                 ) {
                     Text(text = if (isStopWatchActive) "Pause" else "Start")
-                }
-                Spacer(modifier = Modifier.width(10.dp))
-                Button(
-                    onClick = stop,
-                    modifier = Modifier
-                ) {
-                    Text(text = "Pause")
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Button(
@@ -150,6 +151,13 @@ fun DashboardTestScreen(
                 }
             }
             Row {
+                if (!locationPermissionState.status.isGranted) {
+                    Text(text = "Location permissions NO")
+                } else {
+                    Text(text = "Location permissions OK")
+                }
+            }
+            Row {
                 Text(
                     text = "Bluetooth enabled: ",
                     style = MaterialTheme.typography.headlineSmall,
@@ -159,6 +167,13 @@ fun DashboardTestScreen(
                     Text(text = "yes")
                 } else {
                     Text(text = "no")
+                }
+            }
+            Row {
+                if (!bluetoothPermissionsState.allPermissionsGranted) {
+                    Text(text = "Bluetooth permissions NO")
+                } else {
+                    Text(text = "Bluetooth permissions OK")
                 }
             }
 
@@ -200,50 +215,6 @@ fun DashboardTestScreen(
             )
 
 
-            /*Text(
-                text = "Latitude: $latitude",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = "Longitude: $longitude",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )*/
-
-            /*location?.let {
-                Text(
-                    text =  location!!.latitude ,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = location!!.longitude ,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }*/
-
-            Button(
-                onClick = requestForLocation,
-                modifier = Modifier
-            ) {
-                Text(text = "Request Location")
-            }
-
-
-            if(!locationPermissionState.status.isGranted) {
-                Button(
-                    onClick = { locationPermissionState.launchPermissionRequest() },
-                    modifier = Modifier
-                ) {
-                    Text(text = "Request location permissions")
-                }
-            } else {
-                Text(text = "Location permissions OK")
-            }
-
-
             Button(
                 onClick = {
                     navigator.navigate(HomeScreenDestination) {
@@ -254,28 +225,36 @@ fun DashboardTestScreen(
             ) {
                 Text(text = "Home")
             }
+
             Button(
-                onClick = requestForBluetooth,
+                onClick = { openAlertDialog.value = true },
                 modifier = Modifier
             ) {
-                Text(text = "Request Bluetooth")
+                Text(text = "Save Trip")
             }
-            if(!bluetoothPermissionsState.allPermissionsGranted) {
-                Button(
-                    onClick = { bluetoothPermissionsState.launchMultiplePermissionRequest() },
-                    modifier = Modifier
-                ) {
-                    Text(text = "Request bluetooth permissions")
-                }
-            } else {
-                Text(text = "Bluetooth permissions OK")
-            }
+
             Row {
                 Button(
-                    onClick = initializeBLE,
+                    onClick = {
+                        coroutineScope.launch {
+                            if (bleConnectionState == ConnectionState.Uninitialized ||
+                                bleConnectionState == ConnectionState.Disconnected) {
+                                if(checkBluetoothPermissions(isBluetoothEnabled, bluetoothPermissionsState)) {
+                                    initializeBLE()
+                                } else {
+                                    requestBluetoothPermissions(isBluetoothEnabled, requestForBluetooth, bluetoothPermissionsState)
+                                }
+                            } else {
+                                disconnectBLE()
+                            }
+                        }
+                    },
                     modifier = Modifier
                 ) {
-                    Text(text = "init")
+                    Text(text = if (bleConnectionState == ConnectionState.Connected) "Disconnect"
+                        else if (bleConnectionState == ConnectionState.CurrentlyInitializing) "Initializing"
+                        else "Init"
+                    )
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Button(
@@ -373,7 +352,13 @@ fun DashboardTestScreen(
 
 
     }
+    TripDialog(openAlertDialog)
+    if((!isLocationEnabled || !locationPermissionState.status.isGranted) && isStopWatchActive) {
+        stop()
+        requestLocationPermissions(isLocationEnabled, requestForLocation, locationPermissionState)
+    }
 }
+
 
 fun locationStartObserver(location: LocationLiveData, lifecycleOwner: LifecycleOwner, locationObserver : Observer<LocationDetails>) {
     location.observe(lifecycleOwner, locationObserver)
@@ -382,31 +367,40 @@ fun locationStartObserver(location: LocationLiveData, lifecycleOwner: LifecycleO
 fun locationRemoveObserver(location: LocationLiveData, locationObserver: Observer<LocationDetails>) {
     location.removeObserver(locationObserver)
 }
-@ExperimentalPermissionsApi
-class PermissionsStatePreview : PermissionState {
-    override val permission: String
-        get() = android.Manifest.permission.ACCESS_FINE_LOCATION
-    override val status: PermissionStatus
-        get() = PermissionStatus.Denied(shouldShowRationale = true)
 
-    override fun launchPermissionRequest() {
+@OptIn(ExperimentalPermissionsApi::class)
+fun checkLocationPermissions(isLocationEnabled: Boolean, locationPermissionState: PermissionState): Boolean {
+    Log.d("tag", "$isLocationEnabled permissions: ${locationPermissionState.status.isGranted}")
+    return (isLocationEnabled && locationPermissionState.status.isGranted)
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+fun checkBluetoothPermissions(isBluetoothEnabled: Boolean, bluetoothPermissionsState: MultiplePermissionsState): Boolean {
+    return (isBluetoothEnabled && bluetoothPermissionsState.allPermissionsGranted)
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+fun requestLocationPermissions(isLocationEnabled: Boolean, requestForLocation: () -> Unit, locationPermissionState: PermissionState) {
+    if(!locationPermissionState.status.isGranted) {
+        locationPermissionState.launchPermissionRequest()
+    }
+    if(!isLocationEnabled) {
+        requestForLocation()
+    }
+    Log.d("tag", "XXXXXXXX")
+}
+@OptIn(ExperimentalPermissionsApi::class)
+fun requestBluetoothPermissions(isBluetoothEnabled: Boolean, requestForBluetooth: () -> Unit, bluetoothPermissionState: MultiplePermissionsState) {
+    if(!isBluetoothEnabled) {
+        requestForBluetooth()
+    }
+    if(!bluetoothPermissionState.allPermissionsGranted) {
+        bluetoothPermissionState.launchMultiplePermissionRequest()
     }
 }
 
-@ExperimentalPermissionsApi
-class MultiplePermissionsStatePreview : MultiplePermissionsState {
-    override val allPermissionsGranted: Boolean
-        get() = false
-    override val permissions: List<PermissionState>
-        get() = permissions
-    override val revokedPermissions: List<PermissionState>
-        get() = permissions
-    override val shouldShowRationale: Boolean
-        get() = false
 
-    override fun launchMultiplePermissionRequest() {
-    }
-}
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalPermissionsApi::class)
@@ -415,7 +409,7 @@ class MultiplePermissionsStatePreview : MultiplePermissionsState {
 fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
                         dashboardViewModel : DashboardViewModel = hiltViewModel(),
                         navigator: DestinationsNavigator) {
-    
+
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
     val bluetoothPermissionsState = rememberMultiplePermissionsState(permissions = BluetoothPermissions.permissions)
     val locationPermissionState = rememberPermissionState(permission = LocationPermission.permission)
@@ -443,8 +437,41 @@ fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
         batteryVoltage = dashboardViewModel.batteryVoltage,
         deviceBatteryVoltage = dashboardViewModel.deviceBatteryVoltage,
         distanceTime = dashboardViewModel.stopWatch.formattedTime,
-        isStopWatchActive = dashboardViewModel.stopWatch.isActive
+        isStopWatchActive = dashboardViewModel.stopWatch.isActive,
     )
+}
+
+
+
+
+
+
+
+
+@ExperimentalPermissionsApi
+class PermissionsStatePreview : PermissionState {
+    override val permission: String
+        get() = android.Manifest.permission.ACCESS_FINE_LOCATION
+    override val status: PermissionStatus
+        get() = PermissionStatus.Denied(shouldShowRationale = true)
+
+    override fun launchPermissionRequest() {
+    }
+}
+
+@ExperimentalPermissionsApi
+class MultiplePermissionsStatePreview : MultiplePermissionsState {
+    override val allPermissionsGranted: Boolean
+        get() = false
+    override val permissions: List<PermissionState>
+        get() = permissions
+    override val revokedPermissions: List<PermissionState>
+        get() = permissions
+    override val shouldShowRationale: Boolean
+        get() = false
+
+    override fun launchMultiplePermissionRequest() {
+    }
 }
 
 @SuppressLint("UnrememberedMutableState")

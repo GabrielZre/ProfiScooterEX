@@ -100,6 +100,7 @@ class DashboardViewModel
     }
 
     fun disconnectBLE() {
+        startBatteryVoltage = null
         bleErrorMessage = null
         bleConnectionState = ConnectionState.Uninitialized
         batteryVoltageReceiveManager.disconnect()
@@ -107,7 +108,6 @@ class DashboardViewModel
     }
 
     fun initializeBLEConnection() {
-        startBatteryVoltage = null
         bleErrorMessage = null
         subscribeToChanges()
         batteryVoltageReceiveManager.startReceiving()
@@ -121,27 +121,26 @@ class DashboardViewModel
     @SuppressLint("NewApi")
     fun start(lifecycleOwner : LifecycleOwner) {
         locationStartObserver(locationLiveData, lifecycleOwner, locationObserver)
-        //stopWatch.start()
     }
 
     fun restart() {
         locationLiveData.resetLocationData()
+        currentSpeed = 0f
+        averageSpeed = 0f
+        distanceTrip = 0f
         locationLiveData.removeLocationUpdates()
         locationRemoveObserver(locationLiveData, locationObserver)
-        //stopWatch.reset()
     }
 
     fun stop() {
         locationLiveData.removeLocationUpdates()
         locationRemoveObserver(locationLiveData, locationObserver)
-        //stopWatch.pause()
     }
 
     fun calculateBatteryDrain(): Float{
         val batteryDrain = startBatteryVoltage?.minus(batteryVoltage) ?: 0f
         return if (batteryDrain < 0f) 0f else batteryDrain
     }
-
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun saveTrip(tripName: String) {

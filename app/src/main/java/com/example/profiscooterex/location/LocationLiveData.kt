@@ -60,7 +60,7 @@ class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveDat
         }
 
         val hours = BigDecimal.valueOf(seconds % 86400 / 3600)
-            .setScale(3, RoundingMode.HALF_UP)
+            .setScale(4, RoundingMode.HALF_UP)
             .toDouble()
 
         return ((distanceTrip / 1000) / hours).toFloat()
