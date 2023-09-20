@@ -14,9 +14,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.BluetoothDisabled
+import androidx.compose.material.icons.filled.LocationOff
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
@@ -132,81 +139,28 @@ fun DashboardTestScreen(
                 }
             }
             Row {
-                Text(
-                    text = "Location enabled: ",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                if (isLocationEnabled) {
-                    Text(text = "yes")
+
+                if (isLocationEnabled && locationPermissionState.status.isGranted) {
+                    Icon(imageVector = Icons.Default.LocationOn, tint = Color.Green, contentDescription = "Location On")
                 } else {
-                    Text(text = "no")
+                    Icon(imageVector = Icons.Default.LocationOff, tint = Color.Red, contentDescription = "Location Off")
                 }
             }
             Row {
-                if (!locationPermissionState.status.isGranted) {
-                    Text(text = "Location permissions NO")
+                if (isBluetoothEnabled && bluetoothPermissionsState.allPermissionsGranted) {
+                    Icon(imageVector = Icons.Default.Bluetooth, tint = Color.Green, contentDescription = "Bluetooth On")
                 } else {
-                    Text(text = "Location permissions OK")
-                }
-            }
-            Row {
-                Text(
-                    text = "Bluetooth enabled: ",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                if (isBluetoothEnabled) {
-                    Text(text = "yes")
-                } else {
-                    Text(text = "no")
-                }
-            }
-            Row {
-                if (!bluetoothPermissionsState.allPermissionsGranted) {
-                    Text(text = "Bluetooth permissions NO")
-                } else {
-                    Text(text = "Bluetooth permissions OK")
+                    Icon(imageVector = Icons.Default.BluetoothDisabled, tint = Color.Red, contentDescription = "Bluetooth Off")
                 }
             }
 
-            Row {
-                Text(
-                    text = "IS_ACCESS_FINE_LOCATION: ",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                if (locationPermissionState.status.isGranted) {
-                    Text(text = "yes")
-                } else {
-                    Text(text = "no")
-                }
-            }
-
-            Text(
-                text = "Current speed: $currentSpeed" ,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = "Average speed: $averageSpeed" ,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-
-            Text(
-                text = "Trip: $distanceTrip" ,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
             Text(
                 text = "Distance time: $distanceTime" ,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = Color.White
             )
 
-            DashboardSpeedIndicator()
+            DashboardSpeedIndicator(currentSpeed, averageSpeed, distanceTrip)
             Button(
                 onClick = {
                     navigator.navigate(HomeScreenDestination) {
@@ -426,7 +380,7 @@ fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
         batteryVoltage = dashboardViewModel.batteryVoltage,
         deviceBatteryVoltage = dashboardViewModel.deviceBatteryVoltage,
         distanceTime = dashboardViewModel.stopWatch.formattedTime,
-        isStopWatchActive = dashboardViewModel.stopWatch.isActive,
+        isStopWatchActive = dashboardViewModel.stopWatch.isActive
     )
 }
 

@@ -1,6 +1,7 @@
 package com.example.profiscooterex.ui.dashboard.components
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.keyframes
@@ -8,16 +9,24 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddRoad
+import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -33,8 +42,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.profiscooterex.ui.dashboard.DashboardViewModel
 import com.example.profiscooterex.ui.dashboard.UiState
 import com.example.profiscooterex.ui.theme.AppTheme
 import com.example.profiscooterex.ui.theme.Green200
@@ -42,61 +49,67 @@ import com.example.profiscooterex.ui.theme.Green500
 import com.example.profiscooterex.ui.theme.GreenGradient
 import com.example.profiscooterex.ui.theme.LightColor
 import com.ramcosta.composedestinations.annotation.Destination
+import kotlinx.coroutines.CoroutineScope
 
 import kotlinx.coroutines.launch
 import kotlin.math.floor
 
 
-fun Animatable<Float, AnimationVector1D>.toUiState() = UiState(
+fun Animatable<Float, AnimationVector1D>.toUiState(averageSpeed: Float, distanceTrip: Float) = UiState(
     arcValue = value,
     speed = "%.1f".format(value * 100),
+    averageSpeed = "%.1f".format(averageSpeed),
+    distanceTrip = "%.1f".format(distanceTrip)
 )
 
 @SuppressLint("UnrememberedMutableState", "CoroutineCreationDuringComposition")
 @Destination
 @Composable
-fun DashboardSpeedIndicator() {
+fun DashboardSpeedIndicator(currentSpeed: Float, averageSpeed: Float, distanceTrip: Float) {
     val coroutineScope = rememberCoroutineScope()
-    //val viewModel: DashboardViewModel = hiltViewModel()
-    //var currentSpeed = mutableFloatStateOf(viewModel.currentSpeed)
-    //val animation = remember { Animatable(viewModel.currentSpeed / 100) }
-    val animation = remember { Animatable(0f) }
+    val animation = remember { Animatable(currentSpeed / 100) }
+    val initAnimation = remember { mutableStateOf(false) }
 
 
-    //animation.toUiState().speed = currentSpeed.toString()
-    DashboardSpeedIndicator(animation.toUiState())
-    DisposableEffect(Unit) {
-            coroutineScope.launch {
-                animation.animateTo(1f, keyframes {
-                durationMillis = 1000
-            })
-            animation.animateTo(0f, keyframes {
-                durationMillis = 1000
-            })
-            }
-        onDispose {
-            coroutineScope.launch {
-                animation.stop()
+    animation.toUiState(averageSpeed, distanceTrip).speed = currentSpeed.toString()
+
+    DashboardSpeedIndicator(animation.toUiState(averageSpeed, distanceTrip))
+
+    LaunchedEffect(initAnimation.value) {
+        if (!initAnimation.value) {
+            launchAnimation(coroutineScope, animation) {
+                initAnimation.value = true
             }
         }
     }
-
-
-    fun start() {
-        coroutineScope.launch {
-            animation.animateTo(0f, keyframes {
-                durationMillis = 1000
-            })
-            /*animation.animateTo(currentSpeed.floatValue / 100, keyframes {
-                durationMillis = 1000
-            })*/
-        }
+    if(initAnimation.value) {
+        start(currentSpeed, coroutineScope, animation)
     }
 
-    fun stop() {
-        coroutineScope.launch {
-            animation.stop()
-        }
+}
+
+suspend fun launchAnimation(
+    coroutineScope: CoroutineScope,
+    animation: Animatable<Float, AnimationVector1D>,
+    onAnimationComplete: () -> Unit
+) {
+    coroutineScope.launch {
+        animation.animateTo(1f, keyframes {
+            durationMillis = 1000
+        })
+        animation.animateTo(0f, keyframes {
+            durationMillis = 1000
+        })
+        onAnimationComplete()
+    }
+}
+fun start(currentSpeed: Float ,coroutineScope: CoroutineScope, animation: Animatable<Float, AnimationVector1D>) {
+    coroutineScope.launch {
+        //animation.stop()
+        animation.animateTo( currentSpeed / 100, keyframes {
+            durationMillis = 1000
+            Log.d("tag", "xd:${currentSpeed}")
+        })
     }
 }
 
@@ -120,14 +133,16 @@ fun SpeedIndicator(state: UiState) {
             .aspectRatio(1f)
     ) {
         CircularSpeedIndicator(state.arcValue, 240f)
-        SpeedValue(state.speed)
+        SpeedValue(state.speed, state.averageSpeed, state.distanceTrip)
     }
 }
 
 @Composable
-fun SpeedValue(value: String) {
+fun SpeedValue(value: String, averageSpeed: String, distanceTrip: String) {
     Column(
-        Modifier.fillMaxSize(),
+        Modifier
+            .fillMaxSize()
+            .padding(top = 80.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -142,6 +157,33 @@ fun SpeedValue(value: String) {
             color = Color.White,
             style = MaterialTheme.typography.caption
         )
+        Spacer(modifier = Modifier.height(40.dp))
+        Row {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(imageVector = Icons.Default.AddRoad, tint = Color.Gray, contentDescription = "Bluetooth Off")
+                Text(text = distanceTrip,
+                    fontSize = 15.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Spacer(modifier = Modifier.width(60.dp))
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(imageVector = Icons.Default.Speed, tint = Color.Gray, contentDescription = "Bluetooth Off")
+                Text(text = averageSpeed,
+                    fontSize = 15.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Medium
+                )
+
+            }
+        }
     }
 }
 
@@ -232,7 +274,8 @@ fun DashboardSpeedIndicatorPreview() {
             DashboardSpeedIndicator(
                 UiState(
                     speed = "120.5",
-                    ping = "5 ms",
+                    averageSpeed = "35.00",
+                    distanceTrip = "22.00",
                     maxSpeed = "150.0 mbps",
                     arcValue = 0.83f,
                 )

@@ -21,7 +21,6 @@ import com.example.profiscooterex.R
 import com.example.profiscooterex.data.DataViewModel
 import com.example.profiscooterex.data.userDB.TripDetails
 import com.example.profiscooterex.ui.auth.AuthViewModel
-import com.example.profiscooterex.ui.destinations.DashboardScreenDestination
 import com.example.profiscooterex.ui.destinations.DashboardTestScreenDestination
 import com.example.profiscooterex.ui.destinations.LoginScreenDestination
 import com.example.profiscooterex.ui.theme.AppTheme
@@ -96,18 +95,6 @@ fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), userDataViewModel: D
                     ) {
                         Text(text = stringResource(id = R.string.logout))
                     }
-
-                    Button(
-                        onClick = {
-                            navigator.navigate(DashboardScreenDestination) {
-                                popUpTo(DashboardScreenDestination.route) {inclusive = true}
-                            }
-                        },
-                        modifier = Modifier
-                    ) {
-                        Text(text = stringResource(id = R.string.dashboard))
-                    }
-
                     Button(
                         onClick = {
                             navigator.navigate(DashboardTestScreenDestination) {

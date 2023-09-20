@@ -49,7 +49,7 @@ class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveDat
 
     private fun calculateDistanceTrip(location: Location, previousLocation: Location) : Float {
         distanceTrip += location.distanceTo(previousLocation)
-        return distanceTrip
+        return distanceTrip / 1000
     }
 
     private fun getAveragedSpeed(): Float {
