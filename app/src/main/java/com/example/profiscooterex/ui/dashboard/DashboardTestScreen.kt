@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Surface
@@ -21,18 +20,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
@@ -41,15 +32,17 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.profiscooterex.data.ble.ConnectionState
 import com.example.profiscooterex.data.userDB.LocationDetails
 import com.example.profiscooterex.location.LocationLiveData
 import com.example.profiscooterex.permissions.BluetoothPermissions
 import com.example.profiscooterex.permissions.LocationPermission
 import com.example.profiscooterex.permissions.PermissionsViewModel
+import com.example.profiscooterex.ui.dashboard.components.DashboardSpeedIndicator
+import com.example.profiscooterex.ui.dashboard.components.dialogs.TripDialog
 import com.example.profiscooterex.ui.destinations.HomeScreenDestination
 import com.example.profiscooterex.ui.theme.AppTheme
+import com.example.profiscooterex.ui.theme.DarkGradient
 import com.example.profiscooterex.ui.theme.spacing
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
@@ -61,8 +54,6 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -96,10 +87,12 @@ fun DashboardTestScreen(
 
     val spacing = MaterialTheme.spacing
     val coroutineScope = rememberCoroutineScope()
-    var openAlertDialog = mutableStateOf(false)
+    val openAlertDialog = mutableStateOf(false)
 
     Row(
         modifier = Modifier
+            .fillMaxSize()
+            .background(DarkGradient)
             .wrapContentHeight()
             .padding(spacing.medium),
         horizontalArrangement = Arrangement.spacedBy(
@@ -190,7 +183,6 @@ fun DashboardTestScreen(
                 }
             }
 
-
             Text(
                 text = "Current speed: $currentSpeed" ,
                 style = MaterialTheme.typography.bodyMedium,
@@ -214,7 +206,7 @@ fun DashboardTestScreen(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-
+            DashboardSpeedIndicator()
             Button(
                 onClick = {
                     navigator.navigate(HomeScreenDestination) {
@@ -346,12 +338,9 @@ fun DashboardTestScreen(
                     Log.d("tag", "Initialize again")
                 }
             }
-
-
         }
-
-
     }
+
     TripDialog(openAlertDialog)
     if((!isLocationEnabled || !locationPermissionState.status.isGranted) && isStopWatchActive) {
         stop()
@@ -474,6 +463,7 @@ class MultiplePermissionsStatePreview : MultiplePermissionsState {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalPermissionsApi::class)
 @Preview(showBackground = true, device = Devices.PIXEL)

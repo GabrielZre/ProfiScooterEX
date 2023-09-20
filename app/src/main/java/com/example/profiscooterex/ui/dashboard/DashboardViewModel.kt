@@ -23,7 +23,7 @@ import com.example.profiscooterex.data.ble.ConnectionState
 import com.example.profiscooterex.data.userDB.LocationDetails
 import com.example.profiscooterex.data.userDB.TripDetails
 import com.example.profiscooterex.location.LocationLiveData
-import com.example.profiscooterex.ui.dashboard.stopWatch.StopWatch
+import com.example.profiscooterex.ui.dashboard.components.stopWatch.StopWatch
 import com.example.profiscooterex.data.DataViewModel
 import com.example.profiscooterex.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel

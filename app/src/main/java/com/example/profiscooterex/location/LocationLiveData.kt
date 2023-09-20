@@ -10,7 +10,7 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
 import com.example.profiscooterex.data.userDB.LocationDetails
-import com.example.profiscooterex.ui.dashboard.stopWatch.StopWatch
+import com.example.profiscooterex.ui.dashboard.components.stopWatch.StopWatch
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -56,7 +56,7 @@ class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveDat
         val seconds = stopWatch.timeMillis.toDouble().roundToInt() / 1000.0
 
         if (seconds < 1.0) {
-            return 0.0.toFloat()
+            return 0.0f
         }
 
         val hours = BigDecimal.valueOf(seconds % 86400 / 3600)

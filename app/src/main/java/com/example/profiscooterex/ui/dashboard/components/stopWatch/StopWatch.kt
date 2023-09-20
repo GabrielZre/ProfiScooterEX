@@ -1,4 +1,4 @@
-package com.example.profiscooterex.ui.dashboard.stopWatch
+package com.example.profiscooterex.ui.dashboard.components.stopWatch
 
 import android.os.Build
 import androidx.annotation.RequiresApi

@@ -1,7 +1,7 @@
 package com.example.profiscooterex.ui.dashboard
 
 class UiState(
-    val speed: String = "",
+    var speed: String = "",
     val ping: String = "-",
     val maxSpeed: String = "-",
     val arcValue: Float = 0f,

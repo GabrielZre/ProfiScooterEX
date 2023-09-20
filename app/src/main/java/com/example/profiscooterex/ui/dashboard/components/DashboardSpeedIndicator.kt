@@ -1,39 +1,23 @@
-package com.example.profiscooterex.ui.dashboard
+package com.example.profiscooterex.ui.dashboard.components
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.keyframes
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -45,15 +29,14 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.profiscooterex.ui.dashboard.DashboardViewModel
 import com.example.profiscooterex.ui.dashboard.UiState
 import com.example.profiscooterex.ui.theme.AppTheme
-import com.example.profiscooterex.ui.theme.DarkGradient
 import com.example.profiscooterex.ui.theme.Green200
 import com.example.profiscooterex.ui.theme.Green500
 import com.example.profiscooterex.ui.theme.GreenGradient
@@ -61,36 +44,27 @@ import com.example.profiscooterex.ui.theme.LightColor
 import com.ramcosta.composedestinations.annotation.Destination
 
 import kotlinx.coroutines.launch
-import java.lang.Float.max
 import kotlin.math.floor
-import kotlin.math.roundToInt
 
-
-suspend fun startAnimation(animation: Animatable<Float, AnimationVector1D>) {
-    animation.animateTo(0.84f, keyframes {
-        durationMillis = 9000
-        0.30f at 0 with CubicBezierEasing(0f, 1.5f, 0.8f, 1f)
-        0.82f at 7500 with LinearOutSlowInEasing
-    })
-}
 
 fun Animatable<Float, AnimationVector1D>.toUiState() = UiState(
     arcValue = value,
     speed = "%.1f".format(value * 100),
 )
 
+@SuppressLint("UnrememberedMutableState", "CoroutineCreationDuringComposition")
 @Destination
 @Composable
-fun DashboardScreen() {
+fun DashboardSpeedIndicator() {
     val coroutineScope = rememberCoroutineScope()
+    //val viewModel: DashboardViewModel = hiltViewModel()
+    //var currentSpeed = mutableFloatStateOf(viewModel.currentSpeed)
+    //val animation = remember { Animatable(viewModel.currentSpeed / 100) }
+    val animation = remember { Animatable(0f) }
 
-    val animation = remember { Animatable(70f) }
 
-    DashboardScreen(animation.toUiState()) {
-        coroutineScope.launch {
-            startAnimation(animation)
-        }
-    }
+    //animation.toUiState().speed = currentSpeed.toString()
+    DashboardSpeedIndicator(animation.toUiState())
     DisposableEffect(Unit) {
             coroutineScope.launch {
                 animation.animateTo(1f, keyframes {
@@ -106,33 +80,39 @@ fun DashboardScreen() {
             }
         }
     }
-}
 
-@Composable
-private fun DashboardScreen(state: UiState, onClick: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkGradient),
-        verticalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Header()
-        SpeedIndicator(state = state, onClick = onClick)
+
+    fun start() {
+        coroutineScope.launch {
+            animation.animateTo(0f, keyframes {
+                durationMillis = 1000
+            })
+            /*animation.animateTo(currentSpeed.floatValue / 100, keyframes {
+                durationMillis = 1000
+            })*/
+        }
+    }
+
+    fun stop() {
+        coroutineScope.launch {
+            animation.stop()
+        }
     }
 }
 
 @Composable
-fun Header() {
-    Text(
-        text = "SPEEDTEST",
-        modifier = Modifier.padding(top = 52.dp, bottom = 16.dp),
-        style = MaterialTheme.typography.h6
-    )
+private fun DashboardSpeedIndicator(state: UiState) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier,
+        verticalArrangement = Arrangement.SpaceBetween,
+    ) {
+        SpeedIndicator(state = state)
+    }
 }
 
 @Composable
-fun SpeedIndicator(state: UiState, onClick: () -> Unit) {
+fun SpeedIndicator(state: UiState) {
     Box(
         contentAlignment = Alignment.BottomCenter,
         modifier = Modifier
@@ -140,7 +120,6 @@ fun SpeedIndicator(state: UiState, onClick: () -> Unit) {
             .aspectRatio(1f)
     ) {
         CircularSpeedIndicator(state.arcValue, 240f)
-        StartButton(!state.inProgress, onClick)
         SpeedValue(state.speed)
     }
 }
@@ -152,34 +131,19 @@ fun SpeedValue(value: String) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("DOWNLOAD", style = MaterialTheme.typography.caption)
         Text(
             text = value,
             fontSize = 45.sp,
             color = Color.White,
             fontWeight = FontWeight.Bold
         )
-        Text("mbps", style = MaterialTheme.typography.caption)
-    }
-}
-
-@Composable
-fun StartButton(isEnabled: Boolean, onClick: () -> Unit) {
-    OutlinedButton(
-        onClick = onClick,
-        modifier = Modifier.padding(bottom = 24.dp),
-        enabled = isEnabled,
-        shape = RoundedCornerShape(24.dp),
-        border = BorderStroke(width = 2.dp, color = MaterialTheme.colors.onSurface),
-
-        ) {
         Text(
-            text = "START",
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+            "Kmh",
+            color = Color.White,
+            style = MaterialTheme.typography.caption
         )
     }
 }
-
 
 @Composable
 fun CircularSpeedIndicator(value: Float, angle: Float) {
@@ -260,19 +224,19 @@ fun DrawScope.drawLines(progress: Float, maxValue: Float, numberOfLines: Int = 4
     }
 }
 
-@Preview(showBackground = true, device = Devices.PIXEL)
+@Preview(showBackground = true, backgroundColor = 0xFF00FF00)
 @Composable
-fun DefaultPreview() {
+fun DashboardSpeedIndicatorPreview() {
     AppTheme {
         Surface() {
-            DashboardScreen(
+            DashboardSpeedIndicator(
                 UiState(
                     speed = "120.5",
                     ping = "5 ms",
                     maxSpeed = "150.0 mbps",
                     arcValue = 0.83f,
                 )
-            ) { }
+            )
         }
     }
 }
