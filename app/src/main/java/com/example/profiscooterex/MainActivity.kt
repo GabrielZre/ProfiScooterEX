@@ -12,12 +12,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import com.example.profiscooterex.navigation.Parent
 import com.example.profiscooterex.permissions.service.RequestServiceListener
 import com.example.profiscooterex.permissions.service.RequestServicesListener
 import com.example.profiscooterex.permissions.service.ServiceViewModel
 //import com.example.profiscooterex.data.userDB.DataViewModel
 //import com.example.profiscooterex.navigation.AppNavHost
-import com.example.profiscooterex.ui.NavGraphs
 import com.example.profiscooterex.ui.theme.AppTheme
 import com.ramcosta.composedestinations.DestinationsNavHost
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,7 +35,7 @@ class MainActivity: AppCompatActivity(), RequestServicesListener {
         super.onCreate(savedInstanceState)
         setContent {
             AppTheme {
-                DestinationsNavHost(navGraph = NavGraphs.root)
+                Parent()
             }
         }
         requestServiceListener.addListener(this)

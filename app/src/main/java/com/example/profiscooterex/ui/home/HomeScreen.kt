@@ -20,6 +20,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.profiscooterex.R
 import com.example.profiscooterex.data.DataViewModel
 import com.example.profiscooterex.data.userDB.TripDetails
+import com.example.profiscooterex.navigation.BottomBar
+import com.example.profiscooterex.navigation.ContentNavGraph
 import com.example.profiscooterex.ui.auth.AuthViewModel
 import com.example.profiscooterex.ui.destinations.DashboardTestScreenDestination
 import com.example.profiscooterex.ui.destinations.LoginScreenDestination
@@ -29,6 +31,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 
+@ContentNavGraph(start = true)
 @Destination
 @Composable
 fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), userDataViewModel: DataViewModel? = hiltViewModel(), navigator: DestinationsNavigator) {
@@ -95,7 +98,7 @@ fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), userDataViewModel: D
                     ) {
                         Text(text = stringResource(id = R.string.logout))
                     }
-                    Button(
+                    /*Button(
                         onClick = {
                             navigator.navigate(DashboardTestScreenDestination) {
                                 popUpTo(DashboardTestScreenDestination.route) {inclusive = true}
@@ -104,7 +107,7 @@ fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), userDataViewModel: D
                         modifier = Modifier
                     ) {
                         Text(text = "DashboardTest")
-                    }
+                    }*/
 
                 }
 

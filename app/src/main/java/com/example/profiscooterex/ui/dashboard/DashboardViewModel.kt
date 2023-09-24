@@ -64,6 +64,7 @@ class DashboardViewModel
 
     var stopWatch = StopWatch()
 
+
     private val locationLiveData = LocationLiveData(application, stopWatch)
 
     private val locationObserver = Observer<LocationDetails> { tripData ->
@@ -73,6 +74,8 @@ class DashboardViewModel
             averageSpeed = tripData.averageSpeed
         }
     }
+    val locationObserverState: LocationLiveData.LocationState
+        get() = locationLiveData.locationObserverState
 
     private fun subscribeToChanges() {
         viewModelScope.launch {
@@ -135,6 +138,7 @@ class DashboardViewModel
     fun stop() {
         locationLiveData.removeLocationUpdates()
         locationRemoveObserver(locationLiveData, locationObserver)
+        locationLiveData.locationObserverState = LocationLiveData.LocationState.Stopped
     }
 
     fun calculateBatteryDrain(): Float{

@@ -25,6 +25,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.profiscooterex.R
 import com.example.profiscooterex.data.Resource
+import com.example.profiscooterex.navigation.AuthNavGraph
 import com.example.profiscooterex.ui.destinations.HomeScreenDestination
 import com.example.profiscooterex.ui.destinations.SignupScreenDestination
 import com.example.profiscooterex.ui.theme.AppTheme
@@ -35,9 +36,10 @@ import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.ramcosta.composedestinations.navigation.popUpTo
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Destination(start = true)
+@AuthNavGraph(start = true)
+@Destination()
 @Composable
-fun LoginScreen(viewModel : AuthViewModel? = hiltViewModel(),navigator: DestinationsNavigator) {
+fun LoginScreen(viewModel : AuthViewModel? = hiltViewModel(), navigator: DestinationsNavigator) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 

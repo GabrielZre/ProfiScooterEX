@@ -7,6 +7,10 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Looper
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
 import com.example.profiscooterex.data.userDB.LocationDetails
@@ -28,6 +32,12 @@ class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveDat
 
     private var omitFirstLocationRequest = true
 
+    var locationObserverState by mutableStateOf(LocationState.InActive)
+
+    enum class LocationState {
+        Active, InActive, Fetching, Stopped
+    }
+
     override fun onActive() {
         super.onActive()
         locationPermissionCheck()
@@ -37,6 +47,7 @@ class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveDat
     internal fun startLocationUpdates() {
         locationPermissionCheck()
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+        locationObserverState = LocationState.Fetching
     }
 
     private fun setTripData(location: Location?) {
@@ -84,6 +95,7 @@ class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveDat
     internal fun removeLocationUpdates() {
         stopWatch.pause()
         setNewLastFetchedLocation()
+        locationObserverState = LocationState.InActive
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
@@ -105,6 +117,7 @@ class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveDat
                 if (lastFetchedLocation == null) {
                     lastFetchedLocation = locationResult.lastLocation
                     stopWatch.start()
+                    locationObserverState = LocationState.Active
                 }
                 if ((lastFetchedLocation?.latitude != locationResult.lastLocation?.latitude) &&
                     lastFetchedLocation?.longitude != locationResult.lastLocation?.longitude

@@ -4,52 +4,79 @@ import android.annotation.SuppressLint
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Battery3Bar
+import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.BluetoothDisabled
-import androidx.compose.material.icons.filled.LocationOff
-import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import com.example.profiscooterex.data.ble.ConnectionState
 import com.example.profiscooterex.data.userDB.LocationDetails
 import com.example.profiscooterex.location.LocationLiveData
+import com.example.profiscooterex.navigation.ContentNavGraph
 import com.example.profiscooterex.permissions.BluetoothPermissions
 import com.example.profiscooterex.permissions.LocationPermission
 import com.example.profiscooterex.permissions.PermissionsViewModel
 import com.example.profiscooterex.ui.dashboard.components.DashboardSpeedIndicator
 import com.example.profiscooterex.ui.dashboard.components.dialogs.TripDialog
-import com.example.profiscooterex.ui.destinations.HomeScreenDestination
 import com.example.profiscooterex.ui.theme.AppTheme
+import com.example.profiscooterex.ui.theme.Dark
+import com.example.profiscooterex.ui.theme.DarkColor
+import com.example.profiscooterex.ui.theme.DarkColor2
 import com.example.profiscooterex.ui.theme.DarkGradient
+import com.example.profiscooterex.ui.theme.LightColor
 import com.example.profiscooterex.ui.theme.spacing
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
@@ -60,8 +87,22 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import kotlinx.coroutines.launch
+
+enum class DashboardState {
+    Ready, Fetching, Active, Stopped, Disabled
+}
+@OptIn(ExperimentalPermissionsApi::class)
+fun determineDashboardState(isLocationEnabled: Boolean, locationPermissionState: PermissionState, locationObserverState: LocationLiveData.LocationState): DashboardState {
+    return when {
+        isLocationEnabled && locationPermissionState.status.isGranted && locationObserverState == LocationLiveData.LocationState.Active -> DashboardState.Active
+        isLocationEnabled && locationPermissionState.status.isGranted && locationObserverState == LocationLiveData.LocationState.InActive -> DashboardState.Ready
+        isLocationEnabled && locationPermissionState.status.isGranted && locationObserverState == LocationLiveData.LocationState.Fetching -> DashboardState.Fetching
+        !isLocationEnabled || !locationPermissionState.status.isGranted  -> DashboardState.Disabled
+        locationObserverState == LocationLiveData.LocationState.Stopped -> DashboardState.Stopped
+        else -> DashboardState.Disabled
+    }
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
@@ -74,7 +115,6 @@ fun DashboardTestScreen(
     bluetoothPermissionsState : MultiplePermissionsState,
     requestForLocation: () -> Unit,
     requestForBluetooth: () -> Unit,
-    navigator: DestinationsNavigator,
     distanceTrip: Float,
     currentSpeed: Float,
     averageSpeed: Float,
@@ -89,19 +129,39 @@ fun DashboardTestScreen(
     batteryVoltage: Float,
     deviceBatteryVoltage: Float,
     distanceTime: String,
-    isStopWatchActive: Boolean
+    isStopWatchActive: Boolean,
+    locationObserverState: LocationLiveData.LocationState
 ) {
 
     val spacing = MaterialTheme.spacing
     val coroutineScope = rememberCoroutineScope()
     val openAlertDialog = mutableStateOf(false)
 
+    val locationState by mutableStateOf(determineDashboardState(isLocationEnabled, locationPermissionState, locationObserverState))
+    val onClickDashboard: () -> Unit = {
+        coroutineScope.launch {
+            if (locationState == DashboardState.Ready || locationState == DashboardState.Stopped) {
+                start()
+            }
+            else if (locationState == DashboardState.Disabled){
+                requestLocationPermissions(isLocationEnabled, requestForLocation, locationPermissionState)
+            }
+            else {
+                stop()
+            }
+        }
+    }
+    val onLongClickDashboard: () -> Unit = {
+        coroutineScope.launch {
+            restart()
+        }
+    }
+
     Row(
         modifier = Modifier
             .fillMaxSize()
             .background(DarkGradient)
-            .wrapContentHeight()
-            .padding(spacing.medium),
+            .wrapContentHeight(),
         horizontalArrangement = Arrangement.spacedBy(
             space = 100.dp,
             alignment = Alignment.CenterHorizontally
@@ -109,43 +169,37 @@ fun DashboardTestScreen(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row {
-                Button(
-                    onClick = {
-                        coroutineScope.launch {
-                            if (!isStopWatchActive) {
-                                if(checkLocationPermissions(isLocationEnabled, locationPermissionState)) {
-                                    start()
-                                } else {
-                                    requestLocationPermissions(isLocationEnabled, requestForLocation, locationPermissionState)
-                                }
-                            } else {
-                                stop()
-                            }
-                        }
-                    },
-                    modifier =  Modifier
-                ) {
-                    Text(text = if (isStopWatchActive) "Pause" else "Start")
-                }
-                Spacer(modifier = Modifier.width(10.dp))
-                Button(
-                    onClick = restart,
+            
+            Button(
+                onClick = { openAlertDialog.value = true },
+                shape = RoundedCornerShape(0.dp, 0.dp, 10.dp, 10.dp),
+                colors = ButtonDefaults.buttonColors(LightColor)
+            ) {
+                Row(
                     modifier = Modifier
+                        .width(IntrinsicSize.Max)
+                        .height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "Restart")
-                }
-            }
-            Row {
+                    Text(
+                        text = distanceTime,
+                        fontSize = 20.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                    VerticalDivider(color = Color.White)
+                    Icon(
+                        imageVector = Icons.Default.Bookmark,
+                        tint = Color.White,
+                        contentDescription = "Bluetooth On")
 
-                if (isLocationEnabled && locationPermissionState.status.isGranted) {
-                    Icon(imageVector = Icons.Default.LocationOn, tint = Color.Green, contentDescription = "Location On")
-                } else {
-                    Icon(imageVector = Icons.Default.LocationOff, tint = Color.Red, contentDescription = "Location Off")
                 }
             }
+
             Row {
                 if (isBluetoothEnabled && bluetoothPermissionsState.allPermissionsGranted) {
                     Icon(imageVector = Icons.Default.Bluetooth, tint = Color.Green, contentDescription = "Bluetooth On")
@@ -154,33 +208,16 @@ fun DashboardTestScreen(
                 }
             }
 
-            Text(
-                text = "Distance time: $distanceTime" ,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White
-            )
-
-            DashboardSpeedIndicator(currentSpeed, averageSpeed, distanceTrip)
-            Button(
-                onClick = {
-                    navigator.navigate(HomeScreenDestination) {
-                        popUpTo(HomeScreenDestination.route) {inclusive = true}
-                    }
-                },
-                modifier = Modifier
-            ) {
-                Text(text = "Home")
-            }
-
-            Button(
+            DashboardSpeedIndicator(currentSpeed, averageSpeed, distanceTrip, locationState, onClickDashboard, onLongClickDashboard)
+            /*Button(
                 onClick = { openAlertDialog.value = true },
                 modifier = Modifier
             ) {
                 Text(text = "Save Trip")
-            }
+            }*/
 
             Row {
-                Button(
+                /*Button(
                     onClick = {
                         coroutineScope.launch {
                             if (bleConnectionState == ConnectionState.Uninitialized ||
@@ -201,95 +238,108 @@ fun DashboardTestScreen(
                         else if (bleConnectionState == ConnectionState.CurrentlyInitializing) "Initializing"
                         else "Init"
                     )
-                }
-                Spacer(modifier = Modifier.width(10.dp))
-                Button(
-                    onClick = disconnectBLE,
+                }*/
+                Box(
                     modifier = Modifier
+                        .padding(bottom = 30.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "disconnect")
-                }
+                    // Outer Icon
+                    Icon(
+                        imageVector = Icons.Default.BatteryFull,
+                        contentDescription = "Add",
+                        tint = LightColor,
+                        modifier = Modifier.size(60.dp)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.Bluetooth,
+                        contentDescription = "Remove",
+                        tint = Color.Black,
+                        modifier = Modifier.size(28.dp)
+                            .graphicsLayer(alpha = 0.6f) // Ustaw 20% przezroczystości
 
+                    )
+                }
             }
 
+            /*if(bleConnectionState == ConnectionState.CurrentlyInitializing){
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    CircularProgressIndicator()
 
-
-
-
-
+                }
+            }
+*/
             Column(
                 modifier = Modifier,
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
-                if(bleConnectionState == ConnectionState.CurrentlyInitializing){
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(5.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ){
-                        CircularProgressIndicator()
-                        if(bleInitializingMessage != null){
-                            Text(
-                                text = bleInitializingMessage!!
-                            )
-                        }
-                    }
-                    Log.d("tag", "Initializing")
-                }else if(!bluetoothPermissionsState.allPermissionsGranted){
-                    Text(
-                        text = "Go to the app setting and allow the missing permissions.",
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(10.dp),
-                        textAlign = TextAlign.Center
-                    )
-                    Log.d("tag", "Permissions OK")
-                }else if(bleErrorMessage != null){
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = bleErrorMessage!!
-                        )
-                        Button(
-                            onClick = {
-                                if(bluetoothPermissionsState.allPermissionsGranted){
-                                    initializeBLE()
+                            modifier = Modifier
+                                .weight(1f),
+                            text =  buildAnnotatedString {
+                                withStyle(
+                                    style = SpanStyle(fontSize = 30.sp) // Set the font size for deviceBatteryVoltage
+                                ) {
+                                    append(batteryVoltage.toString())
                                 }
-                            }
-                        ) {
-                            Text(
-                                "Try again"
-                            )
-                        }
+                                withStyle(
+                                    style = SpanStyle(fontSize = 22.sp) // Set the font size for "KM"
+                                ) {
+                                    append("%")
+                                }
+                            },
+                            fontSize = 30.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(5.dp))
+                        Icon(imageVector = Icons.Default.BatteryFull, tint = Color.Gray, contentDescription = "Bluetooth On")
                     }
-                    Log.d("tag", "Error not connected")
-                }else if(bleConnectionState == ConnectionState.Connected){
+                    VerticalDivider(color = LightColor)
                     Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ){
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         Text(
-                            text = "Battery Voltage: $batteryVoltage",
-                            style = MaterialTheme.typography.headlineSmall
+                            modifier = Modifier
+                                .weight(1f),
+                            text =  buildAnnotatedString {
+                                withStyle(
+                                    style = SpanStyle(fontSize = 30.sp) // Set the font size for deviceBatteryVoltage
+                                ) {
+                                    append(deviceBatteryVoltage.toString())
+                                }
+                                withStyle(
+                                    style = SpanStyle(fontSize = 22.sp) // Set the font size for "KM"
+                                ) {
+                                    append("KM")
+                                }
+                            },
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium
                         )
-                        Text(
-                            text = "Device Battery: $deviceBatteryVoltage",
-                            style = MaterialTheme.typography.headlineSmall
-                        )
+                        Spacer(modifier = Modifier.height(5.dp))
+                        Icon(imageVector = Icons.Default.BatteryFull, tint = Color.Gray, contentDescription = "Bluetooth On")
+
                     }
-                    Log.d("tag", "OK")
-                }else if(bleConnectionState == ConnectionState.Disconnected){
-                    Button(onClick = {
-                        initializeBLE()
-                    }) {
-                        Text("Initialize again")
-                    }
-                    Log.d("tag", "Initialize again")
+
                 }
             }
         }
@@ -347,6 +397,7 @@ fun requestBluetoothPermissions(isBluetoothEnabled: Boolean, requestForBluetooth
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalPermissionsApi::class)
+@ContentNavGraph
 @Destination
 @Composable
 fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
@@ -365,7 +416,6 @@ fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
         bluetoothPermissionsState = bluetoothPermissionsState,
         requestForLocation = permissionsVM::requestForLocation,
         requestForBluetooth = permissionsVM::requestForBluetooth,
-        navigator = navigator,
         distanceTrip = dashboardViewModel.distanceTrip,
         currentSpeed = dashboardViewModel.currentSpeed,
         averageSpeed = dashboardViewModel.averageSpeed,
@@ -380,7 +430,8 @@ fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
         batteryVoltage = dashboardViewModel.batteryVoltage,
         deviceBatteryVoltage = dashboardViewModel.deviceBatteryVoltage,
         distanceTime = dashboardViewModel.stopWatch.formattedTime,
-        isStopWatchActive = dashboardViewModel.stopWatch.isActive
+        isStopWatchActive = dashboardViewModel.stopWatch.isActive,
+        locationObserverState = dashboardViewModel.locationObserverState
     )
 }
 
@@ -432,7 +483,6 @@ fun DashboardTestScreenPreview() {
                 bluetoothPermissionsState = MultiplePermissionsStatePreview(),
                 requestForLocation = {},
                 requestForBluetooth = {},
-                navigator = EmptyDestinationsNavigator,
                 distanceTrip = 0f,
                 currentSpeed = 0f,
                 averageSpeed = 0f,
@@ -444,10 +494,11 @@ fun DashboardTestScreenPreview() {
                 bleConnectionState = ConnectionState.CurrentlyInitializing,
                 bleInitializingMessage = "Initializing...",
                 bleErrorMessage = "Error...",
-                batteryVoltage = 2f,
-                deviceBatteryVoltage = 2f,
-                distanceTime = "",
-                isStopWatchActive = false
+                batteryVoltage = 0f,
+                deviceBatteryVoltage = 0f,
+                distanceTime = "00:00:00",
+                isStopWatchActive = false,
+                locationObserverState = LocationLiveData.LocationState.InActive
             )
         }
     }

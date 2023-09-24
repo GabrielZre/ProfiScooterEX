@@ -1,5 +1,6 @@
 package com.example.profiscooterex.ui.dashboard.components.dialogs
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.Divider
+import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
@@ -27,10 +29,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.profiscooterex.ui.dashboard.DashboardViewModel
+import com.example.profiscooterex.ui.dashboard.UiState
+import com.example.profiscooterex.ui.dashboard.components.DashboardSpeedIndicator
+import com.example.profiscooterex.ui.theme.AppTheme
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -163,13 +170,3 @@ fun TripDialog(openAlertDialog: MutableState<Boolean>) {
         }
     }
 }
-/*viewModel = {
-    openAlertDialog.value = false
-    viewModel.saveTrip()
-},
-tripName = "",
-totalDistance = tripDetails.totalDistance,
-averageSpeed = tripDetails.averageSpeed,
-batteryDrain = tripDetails.batteryDrain,
-distanceTime = tripDetails.distanceTime,
-dateTime = tripDetails.dateTime*/
