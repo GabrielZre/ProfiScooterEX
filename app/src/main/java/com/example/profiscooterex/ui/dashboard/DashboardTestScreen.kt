@@ -1,18 +1,22 @@
 package com.example.profiscooterex.ui.dashboard
 
 import android.annotation.SuppressLint
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,7 +28,13 @@ import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Battery0Bar
+import androidx.compose.material.icons.filled.Battery1Bar
+import androidx.compose.material.icons.filled.Battery2Bar
 import androidx.compose.material.icons.filled.Battery3Bar
+import androidx.compose.material.icons.filled.Battery4Bar
+import androidx.compose.material.icons.filled.Battery5Bar
+import androidx.compose.material.icons.filled.Battery6Bar
 import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.BluetoothDisabled
@@ -42,12 +52,14 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.SpanStyle
@@ -71,6 +83,7 @@ import com.example.profiscooterex.permissions.LocationPermission
 import com.example.profiscooterex.permissions.PermissionsViewModel
 import com.example.profiscooterex.ui.dashboard.components.DashboardSpeedIndicator
 import com.example.profiscooterex.ui.dashboard.components.dialogs.TripDialog
+import com.example.profiscooterex.ui.dashboard.components.icons.BatteryIcon
 import com.example.profiscooterex.ui.theme.AppTheme
 import com.example.profiscooterex.ui.theme.Dark
 import com.example.profiscooterex.ui.theme.DarkColor
@@ -95,10 +108,10 @@ enum class DashboardState {
 @OptIn(ExperimentalPermissionsApi::class)
 fun determineDashboardState(isLocationEnabled: Boolean, locationPermissionState: PermissionState, locationObserverState: LocationLiveData.LocationState): DashboardState {
     return when {
-        isLocationEnabled && locationPermissionState.status.isGranted && locationObserverState == LocationLiveData.LocationState.Active -> DashboardState.Active
-        isLocationEnabled && locationPermissionState.status.isGranted && locationObserverState == LocationLiveData.LocationState.InActive -> DashboardState.Ready
-        isLocationEnabled && locationPermissionState.status.isGranted && locationObserverState == LocationLiveData.LocationState.Fetching -> DashboardState.Fetching
-        !isLocationEnabled || !locationPermissionState.status.isGranted  -> DashboardState.Disabled
+        checkLocationPermissions(isLocationEnabled, locationPermissionState) && locationObserverState == LocationLiveData.LocationState.Active -> DashboardState.Active
+        checkLocationPermissions(isLocationEnabled, locationPermissionState) && locationObserverState == LocationLiveData.LocationState.InActive -> DashboardState.Ready
+        checkLocationPermissions(isLocationEnabled, locationPermissionState) && locationObserverState == LocationLiveData.LocationState.Fetching -> DashboardState.Fetching
+        !checkLocationPermissions(isLocationEnabled, locationPermissionState)  -> DashboardState.Disabled
         locationObserverState == LocationLiveData.LocationState.Stopped -> DashboardState.Stopped
         else -> DashboardState.Disabled
     }
@@ -124,8 +137,6 @@ fun DashboardTestScreen(
     initializeBLE: () -> Unit,
     disconnectBLE: () -> Unit,
     bleConnectionState: ConnectionState,
-    bleInitializingMessage: String?,
-    bleErrorMessage: String?,
     batteryVoltage: Float,
     deviceBatteryVoltage: Float,
     distanceTime: String,
@@ -135,7 +146,7 @@ fun DashboardTestScreen(
 
     val spacing = MaterialTheme.spacing
     val coroutineScope = rememberCoroutineScope()
-    val openAlertDialog = mutableStateOf(false)
+    val openAlertDialog = remember { mutableStateOf(false) }
 
     val locationState by mutableStateOf(determineDashboardState(isLocationEnabled, locationPermissionState, locationObserverState))
     val onClickDashboard: () -> Unit = {
@@ -191,10 +202,10 @@ fun DashboardTestScreen(
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
-                    VerticalDivider(color = Color.White)
+                    VerticalDivider(color = DarkColor)
                     Icon(
                         imageVector = Icons.Default.Bookmark,
-                        tint = Color.White,
+                        tint = Color.LightGray,
                         contentDescription = "Bluetooth On")
 
                 }
@@ -239,27 +250,7 @@ fun DashboardTestScreen(
                         else "Init"
                     )
                 }*/
-                Box(
-                    modifier = Modifier
-                        .padding(bottom = 30.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    // Outer Icon
-                    Icon(
-                        imageVector = Icons.Default.BatteryFull,
-                        contentDescription = "Add",
-                        tint = LightColor,
-                        modifier = Modifier.size(60.dp)
-                    )
-                    Icon(
-                        imageVector = Icons.Default.Bluetooth,
-                        contentDescription = "Remove",
-                        tint = Color.Black,
-                        modifier = Modifier.size(28.dp)
-                            .graphicsLayer(alpha = 0.6f) // Ustaw 20% przezroczystości
 
-                    )
-                }
             }
 
             /*if(bleConnectionState == ConnectionState.CurrentlyInitializing){
@@ -275,21 +266,21 @@ fun DashboardTestScreen(
             }
 */
             Column(
-                modifier = Modifier,
+                modifier = Modifier
+                    .padding(20.dp, 0.dp, 20.dp, 40.dp)
+                    .fillMaxHeight(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(IntrinsicSize.Min),
+                        .height(IntrinsicSize.Min)
+                        .background(LightColor, shape = RoundedCornerShape(20.dp))
+                        .padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
                         Text(
                             modifier = Modifier
                                 .weight(1f),
@@ -307,16 +298,20 @@ fun DashboardTestScreen(
                             },
                             fontSize = 30.sp,
                             color = Color.White,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center
                         )
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Icon(imageVector = Icons.Default.BatteryFull, tint = Color.Gray, contentDescription = "Bluetooth On")
-                    }
-                    VerticalDivider(color = LightColor)
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+                    VerticalDivider(color = DarkColor)
+                    BatteryIcon(
+                        bleConnectionState = bleConnectionState,
+                        isBluetoothEnabled = isBluetoothEnabled,
+                        bluetoothPermissionsState = bluetoothPermissionsState,
+                        requestForBluetooth = requestForBluetooth,
+                        initializeBLE = initializeBLE,
+                        disconnectBLE = disconnectBLE,
+                        batteryVoltage = batteryVoltage
+                    )
+                    VerticalDivider(color = DarkColor)
                         Text(
                             modifier = Modifier
                                 .weight(1f),
@@ -333,12 +328,10 @@ fun DashboardTestScreen(
                                 }
                             },
                             color = Color.White,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Icon(imageVector = Icons.Default.BatteryFull, tint = Color.Gray, contentDescription = "Bluetooth On")
+                            fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center
 
-                    }
+                        )
 
                 }
             }
@@ -352,7 +345,6 @@ fun DashboardTestScreen(
     }
 }
 
-
 fun locationStartObserver(location: LocationLiveData, lifecycleOwner: LifecycleOwner, locationObserver : Observer<LocationDetails>) {
     location.observe(lifecycleOwner, locationObserver)
 }
@@ -363,7 +355,6 @@ fun locationRemoveObserver(location: LocationLiveData, locationObserver: Observe
 
 @OptIn(ExperimentalPermissionsApi::class)
 fun checkLocationPermissions(isLocationEnabled: Boolean, locationPermissionState: PermissionState): Boolean {
-    Log.d("tag", "$isLocationEnabled permissions: ${locationPermissionState.status.isGranted}")
     return (isLocationEnabled && locationPermissionState.status.isGranted)
 }
 
@@ -380,7 +371,6 @@ fun requestLocationPermissions(isLocationEnabled: Boolean, requestForLocation: (
     if(!isLocationEnabled) {
         requestForLocation()
     }
-    Log.d("tag", "XXXXXXXX")
 }
 @OptIn(ExperimentalPermissionsApi::class)
 fun requestBluetoothPermissions(isBluetoothEnabled: Boolean, requestForBluetooth: () -> Unit, bluetoothPermissionState: MultiplePermissionsState) {
@@ -425,8 +415,6 @@ fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
         initializeBLE = dashboardViewModel::initializeBLEConnection,
         disconnectBLE = dashboardViewModel::disconnectBLE,
         bleConnectionState = dashboardViewModel.bleConnectionState,
-        bleInitializingMessage = dashboardViewModel.bleInitializingMessage,
-        bleErrorMessage = dashboardViewModel.bleErrorMessage,
         batteryVoltage = dashboardViewModel.batteryVoltage,
         deviceBatteryVoltage = dashboardViewModel.deviceBatteryVoltage,
         distanceTime = dashboardViewModel.stopWatch.formattedTime,
@@ -492,8 +480,6 @@ fun DashboardTestScreenPreview() {
                 initializeBLE = {},
                 disconnectBLE = {},
                 bleConnectionState = ConnectionState.CurrentlyInitializing,
-                bleInitializingMessage = "Initializing...",
-                bleErrorMessage = "Error...",
                 batteryVoltage = 0f,
                 deviceBatteryVoltage = 0f,
                 distanceTime = "00:00:00",

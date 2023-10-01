@@ -25,11 +25,14 @@ import com.example.profiscooterex.data.userDB.TripDetails
 import com.example.profiscooterex.location.LocationLiveData
 import com.example.profiscooterex.ui.dashboard.components.stopWatch.StopWatch
 import com.example.profiscooterex.data.DataViewModel
+import com.example.profiscooterex.data.userDB.Scooter
 import com.example.profiscooterex.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.roundToLong
 
@@ -60,10 +63,11 @@ class DashboardViewModel
     var averageSpeed by mutableFloatStateOf(0f)
 
     @RequiresApi(Build.VERSION_CODES.O)
-    val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd ' ' HH:mm")
+    val formatter = DateTimeFormatter.ofPattern("yyy-MM-dd HH:mm")
 
     var stopWatch = StopWatch()
 
+    var scooterData = dataViewModel.scooterDataState.value
 
     private val locationLiveData = LocationLiveData(application, stopWatch)
 
@@ -141,21 +145,25 @@ class DashboardViewModel
         locationLiveData.locationObserverState = LocationLiveData.LocationState.Stopped
     }
 
-    fun calculateBatteryDrain(): Float{
+    fun calculateBatteryDrain(): Float {
         val batteryDrain = startBatteryVoltage?.minus(batteryVoltage) ?: 0f
         return if (batteryDrain < 0f) 0f else batteryDrain
     }
+    
+    /*fun calculateRemainingDistance(): Float {
+
+    }*/
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun saveTrip(tripName: String) {
         dataViewModel.sendTripData(
             TripDetails(
-                LocalDate.now().format(formatter),
+                LocalDateTime.now().format(formatter),
                 tripName,
-                distanceTrip.toString(),
-                averageSpeed.toString(),
-                batteryVoltage.toString(),
-                stopWatch.formattedTime)
+                "%.1f".format(distanceTrip),
+                "%.1f".format(averageSpeed),
+                "%.1f".format(batteryVoltage),
+                TimeUnit.MILLISECONDS.toMinutes(stopWatch.timeMillis).toString())
         )
     }
 }

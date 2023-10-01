@@ -7,17 +7,21 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.profiscooterex.data.userDB.Scooter
 import com.example.profiscooterex.data.userDB.TripDetails
 import com.example.profiscooterex.data.userDB.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
@@ -26,15 +30,21 @@ import javax.inject.Inject
 class DataViewModel @Inject constructor(
 ) : ViewModel() {
 
+    private val currentUser = FirebaseAuth.getInstance().currentUser
+    private val reference = FirebaseDatabase.getInstance()
+        .getReference("Users")
+
     private val _sendTripFlow = MutableStateFlow<Resource<Boolean>?>(null)
     val sendTripFlow: StateFlow<Resource<Boolean>?> = _sendTripFlow
 
     val userDataState  = mutableStateOf(User())
     val tripsDataState  = mutableStateOf<List<TripDetails>>(emptyList())
+    val scooterDataState = mutableStateOf(Scooter())
 
     init {
         getUserData()
         getTripData()
+        getScooterData()
     }
 
     private fun getUserData() {
@@ -47,10 +57,18 @@ class DataViewModel @Inject constructor(
 
     private fun getTripData() {
         viewModelScope.launch {
-            tripsDataState.value = getTripDataFromDB()
+            setupTripDataListener()
         }
 
     }
+
+    private fun getScooterData() {
+        viewModelScope.launch {
+            getScooterDataFromDB()
+        }
+
+    }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun sendTripData(trip: TripDetails) {
@@ -58,81 +76,63 @@ class DataViewModel @Inject constructor(
             sendTripDataToDB(trip, _sendTripFlow)
         }
     }
+    private suspend fun getUserDataFromDB() : User {
+        var userData = User()
 
-}
-
-suspend fun getUserDataFromDB() : User {
-    val currentUser = FirebaseAuth.getInstance().currentUser
-    val reference = FirebaseDatabase.getInstance()
-        .getReference("Users")
-    var userData = User()
-
-    try {
-        val snapshot = reference.child(currentUser?.uid!!).get().await()
-        userData = snapshot.getValue(User::class.java)!!
-
-    } catch (e: Exception) {
-        Log.d("error", "getUserDataFromDB: $e")
-    }
-
-    Log.d("UserData", "Name: ${userData.nick}, Email: ${userData.email}, Age: ${userData.age}")
-
-    return userData
-}
-
-
-suspend fun getTripDataFromDB() : ArrayList<TripDetails> {
-    val currentUser = FirebaseAuth.getInstance().currentUser
-    val reference = FirebaseDatabase.getInstance()
-        .getReference("Users")
-
-    var tripData = TripDetails()
-    var tripsListData : ArrayList<TripDetails> = ArrayList()
-
-    val snapshot = reference.child(currentUser?.uid!!).child("trips").get().await()
-
-    for(dataSnapshot : DataSnapshot in snapshot.children) {
         try {
-            tripData = dataSnapshot.getValue(TripDetails::class.java)!!
-            tripsListData.add(tripData)
+            val snapshot = reference.child(currentUser?.uid!!).get().await()
+            userData = snapshot.getValue(User::class.java)!!
+
         } catch (e: Exception) {
-            Log.d("error", "getTripDataFromDB: $e")
+            Log.d("error", "getUserDataFromDB: $e")
         }
+
+        return userData
     }
 
-    for (trip in tripsListData) {
-        Log.d("TripData", "DateTime: ${trip.dateTime}")
-        Log.d("TripData", "TripName: ${trip.tripName}")
-        Log.d("TripData", "TotalDistance: ${trip.totalDistance}")
-        Log.d("TripData", "DistanceTime: ${trip.distanceTime}")
-        Log.d("TripData", "AverageSpeed: ${trip.averageSpeed}")
-        Log.d("TripData", "BatteryDrain: ${trip.batteryDrain}")
+    fun getScooterDataFromDB() {
     }
 
-    return tripsListData
-}
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun sendTripDataToDB(trip: TripDetails, sendTripFlow: MutableStateFlow<Resource<Boolean>?>)  {
+        val formatter = DateTimeFormatter.ofPattern("yyy-MM-dd HH:mm:ss:n")
+        val time = LocalDateTime.now().format(formatter)
 
-@RequiresApi(Build.VERSION_CODES.O)
-suspend fun sendTripDataToDB(trip: TripDetails, sendTripFlow: MutableStateFlow<Resource<Boolean>?>)  {
-    val currentUser = FirebaseAuth.getInstance().currentUser
-    val reference = FirebaseDatabase.getInstance()
-        .getReference("Users")
-
-    val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd ' ' HH:mm")
-    val date = LocalDate.now().format(formatter)
-
-
-    sendTripFlow.value = Resource.Loading
-    reference.child(currentUser?.uid!!).child("trips")
-        .child(date)
-        .setValue(trip)
-        .addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                sendTripFlow.value = Resource.Success(true)
-            } else {
-                sendTripFlow.value = Resource.Failure(Exception(task.exception?.message ?: "Błąd"))
+        sendTripFlow.value = Resource.Loading
+        reference.child(currentUser?.uid!!).child("trips")
+            .child(time)
+            .setValue(trip)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    sendTripFlow.value = Resource.Success(true)
+                } else {
+                    sendTripFlow.value = Resource.Failure(Exception(task.exception?.message ?: "Błąd"))
+                }
             }
-        }
+    }
+
+    private fun setupTripDataListener() {
+        reference.child(currentUser?.uid!!).child("trips")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    val updatedTripsList: ArrayList<TripDetails> = ArrayList()
+
+                    for (dataSnapshot: DataSnapshot in dataSnapshot.children) {
+                        try {
+                            val tripData = dataSnapshot.getValue(TripDetails::class.java)
+                            tripData?.let { updatedTripsList.add(it) }
+                        } catch (e: Exception) {
+                            Log.e("error", "Failed to parse trip data", e)
+                        }
+                    }
+                    tripsDataState.value = updatedTripsList
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.e("error", "Trip data retrieval cancelled: ${databaseError.toException()}")
+                }
+            })
+    }
 }
 
 

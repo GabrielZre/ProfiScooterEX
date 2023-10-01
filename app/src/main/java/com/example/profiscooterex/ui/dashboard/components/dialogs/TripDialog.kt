@@ -2,6 +2,7 @@ package com.example.profiscooterex.ui.dashboard.components.dialogs
 
 import android.annotation.SuppressLint
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Divider
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
@@ -48,7 +50,6 @@ fun SaveTripDialog(
     icon: ImageVector,
 ) {
     val viewModel: DashboardViewModel = hiltViewModel()
-    var text by remember { mutableStateOf("") }
     var tripName by remember { mutableStateOf("") }
 
     AlertDialog(
@@ -64,8 +65,8 @@ fun SaveTripDialog(
                     .height(IntrinsicSize.Min)
             ) {
                 OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it },
+                    value = tripName,
+                    onValueChange = { tripName = it },
                     label = { Text("Trip name") }
                 )
                 Spacer(
@@ -85,7 +86,8 @@ fun SaveTripDialog(
                     ) {
                         Text(text = "Distance")
                         Text(
-                            text = viewModel.distanceTrip.toString()
+                            modifier = Modifier.padding(bottom = 5.dp),
+                            text = "${"%.1f".format(viewModel.distanceTrip)}KM"
                         )
                     }
                     VerticalDivider()
@@ -96,6 +98,7 @@ fun SaveTripDialog(
                     ) {
                         Text(text = "Time")
                         Text(
+                            modifier = Modifier.padding(bottom = 5.dp),
                             text = viewModel.stopWatch.formattedTime
                         )
                     }
@@ -113,9 +116,12 @@ fun SaveTripDialog(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "Average speed")
                         Text(
-                            text = viewModel.averageSpeed.toString()
+                            modifier = Modifier.padding(top = 5.dp),
+                            text = "Average speed"
+                        )
+                        Text(
+                            text = "${"%.1f".format(viewModel.averageSpeed)}Kmh"
                         )
                     }
                     VerticalDivider()
@@ -124,9 +130,12 @@ fun SaveTripDialog(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "Battery drain")
                         Text(
-                            text = viewModel.calculateBatteryDrain().toString()
+                            modifier = Modifier.padding(top = 5.dp),
+                            text = "Battery drain"
+                        )
+                        Text(
+                            text = "${"%.1f".format(viewModel.calculateBatteryDrain())}%"
                         )
                     }
                 }
@@ -138,7 +147,7 @@ fun SaveTripDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    onDismissRequest
+                    onDismissRequest()
                     viewModel.saveTrip(tripName)
                 }
             ) {

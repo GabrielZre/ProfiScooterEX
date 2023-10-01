@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -212,7 +213,7 @@ fun SpeedValue(value: String, averageSpeed: String, distanceTrip: String, dashbo
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(imageVector = Icons.Default.AddRoad, tint = Color.Gray, contentDescription = "Bluetooth Off")
+                Icon(imageVector = Icons.Default.AddRoad, tint = Color.Gray, contentDescription = "Distance Trip")
                 Text(text = distanceTrip,
                     fontSize = 15.sp,
                     color = Color.White,
@@ -224,7 +225,7 @@ fun SpeedValue(value: String, averageSpeed: String, distanceTrip: String, dashbo
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(imageVector = Icons.Default.Speed, tint = Color.Gray, contentDescription = "Bluetooth Off")
+                Icon(imageVector = Icons.Default.Speed, tint = Color.Gray, contentDescription = "Average speed")
                 Text(text = averageSpeed,
                     fontSize = 15.sp,
                     color = Color.White,
@@ -318,7 +319,9 @@ fun DrawScope.drawLines(progress: Float, maxValue: Float, numberOfLines: Int = 4
 enum class ButtonState { Pressed, Idle }
 fun Modifier.bounceClick() = composed {
     var buttonState by remember { mutableStateOf(ButtonState.Idle) }
-    val scale by animateFloatAsState(if (buttonState == ButtonState.Pressed) 0.90f else 1f)
+    val scale by animateFloatAsState(if (buttonState == ButtonState.Pressed) 0.90f else 1f,
+        label = ""
+    )
 
     this
         .graphicsLayer {

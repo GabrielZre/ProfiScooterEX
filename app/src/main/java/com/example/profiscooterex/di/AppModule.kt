@@ -11,6 +11,7 @@ import com.example.profiscooterex.data.ble.service.BatteryVoltageBLEReceiveManag
 import com.example.profiscooterex.permissions.service.RequestServiceListener
 import com.example.profiscooterex.data.DataViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
