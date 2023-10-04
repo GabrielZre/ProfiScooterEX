@@ -149,9 +149,13 @@ class DashboardViewModel
         val batteryDrain = startBatteryVoltage?.minus(batteryVoltage) ?: 0f
         return if (batteryDrain < 0f) 0f else batteryDrain
     }
-    
-    /*fun calculateRemainingDistance(): Float {
 
+    /*fun calculateBatteryPercent(): Float {
+        return ((currentBatteryVoltage - bottomCutOffX) * 100) / (upperCutOffX - bottomCutOffX)
+    }*/
+
+    /*fun calculateRemainingDistance(): Float {
+        return ((((batteryAhX * batteryVoltageX) / motorPowerX) * 30) * percentage) / 100 // default average 30 km/h
     }*/
 
     @RequiresApi(Build.VERSION_CODES.O)

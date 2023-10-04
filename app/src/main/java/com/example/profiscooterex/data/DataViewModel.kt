@@ -90,7 +90,20 @@ class DataViewModel @Inject constructor(
         return userData
     }
 
-    fun getScooterDataFromDB() {
+    private fun getScooterDataFromDB() {
+        reference.child(currentUser?.uid!!).child("scooter")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        try {
+                            scooterDataState.value = dataSnapshot.getValue(Scooter::class.java)!!
+                        } catch (e: Exception) {
+                            Log.e("error", "Failed to parse scooter data", e)
+                        }
+                }
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.e("tag", "Scooter data retrieval cancelled: ${databaseError.toException()}")
+                }
+            })
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

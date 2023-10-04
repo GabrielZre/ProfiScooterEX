@@ -2,6 +2,7 @@ package com.example.profiscooterex.ui.home
 
 import android.content.res.Configuration
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.lazy.items
@@ -43,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.profiscooterex.R
 import com.example.profiscooterex.data.DataViewModel
+import com.example.profiscooterex.data.userDB.Scooter
 import com.example.profiscooterex.data.userDB.TripDetails
 import com.example.profiscooterex.data.userDB.User
 import com.example.profiscooterex.navigation.BottomBar
@@ -51,6 +53,7 @@ import com.example.profiscooterex.ui.auth.AuthViewModel
 import com.example.profiscooterex.ui.dashboard.components.dialogs.TripDialog
 import com.example.profiscooterex.ui.destinations.DashboardTestScreenDestination
 import com.example.profiscooterex.ui.destinations.LoginScreenDestination
+import com.example.profiscooterex.ui.destinations.ScooterSettingsScreenDestination
 import com.example.profiscooterex.ui.theme.AppTheme
 import com.example.profiscooterex.ui.theme.DarkColor
 import com.example.profiscooterex.ui.theme.DarkColor2
@@ -68,13 +71,15 @@ import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 @Composable
 fun HomeScreen(
     logout: () -> Unit,
-    goToLoginScreen: () ->Unit,
+    goToLoginScreen: () -> Unit,
+    goToScooterSettingsScreen: () -> Unit,
     userData: User?,
-    tripData: List<TripDetails>
+    tripData: List<TripDetails>,
+    scooterData: Scooter?
 ) {
 
     val spacing = MaterialTheme.spacing
-
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -142,7 +147,10 @@ fun HomeScreen(
                     horizontalAlignment = Alignment.End
                 ) {
                     ElevatedButton(
-                        onClick = { },
+                        onClick = {
+                            goToScooterSettingsScreen()
+                            Log.d("tag", "scooterDataState: ${scooterData?.batteryAh}")
+                        },
                         colors = ButtonDefaults.buttonColors(LightColor)
                     ) {
                         Icon(
@@ -279,8 +287,12 @@ fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), dataViewModel: DataV
         goToLoginScreen = { navigator.navigate(LoginScreenDestination) {
             popUpTo(LoginScreenDestination.route) {inclusive = true}
         } },
+        goToScooterSettingsScreen = { navigator.navigate(ScooterSettingsScreenDestination) {
+            popUpTo(ScooterSettingsScreenDestination.route) {inclusive = false}
+        } },
         userData = dataViewModel?.userDataState?.value,
-        tripData = dataViewModel?.tripsDataState?.value ?: emptyList()
+        tripData = dataViewModel?.tripsDataState?.value ?: emptyList(),
+        scooterData = dataViewModel?.scooterDataState?.value
     )
 }
 
@@ -330,8 +342,10 @@ fun HomeScreenPreview() {
             HomeScreen(
                 logout = {},
                 goToLoginScreen = {},
+                goToScooterSettingsScreen = {},
                 userData = sampleUser,
-                tripData = sampleTrips
+                tripData = sampleTrips,
+                scooterData = null
             )
         }
     }

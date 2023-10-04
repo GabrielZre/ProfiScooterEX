@@ -210,7 +210,6 @@ fun DashboardTestScreen(
 
                 }
             }
-
             Row {
                 if (isBluetoothEnabled && bluetoothPermissionsState.allPermissionsGranted) {
                     Icon(imageVector = Icons.Default.Bluetooth, tint = Color.Green, contentDescription = "Bluetooth On")
