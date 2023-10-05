@@ -4,18 +4,21 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material.TextFieldColors
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Battery0Bar
 import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.BatteryUnknown
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.ElectricScooter
+import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,15 +32,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.core.graphics.rotationMatrix
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.profiscooterex.navigation.ContentNavGraph
 import com.example.profiscooterex.ui.scooter.components.Picker
@@ -49,6 +67,7 @@ import com.example.profiscooterex.ui.theme.LightColor2
 import com.example.profiscooterex.ui.theme.spacing
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlin.math.roundToInt
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -61,6 +80,9 @@ fun ScooterSettingsScreen(
 ) {
 
     val spacing = MaterialTheme.spacing
+
+    var isPopupVisible by remember { mutableStateOf(false) }
+
 
     val batteryAhValues = remember { (5..50).map { it.toString() } }
     val batteryAhPickerState = rememberPickerState()
@@ -150,13 +172,16 @@ fun ScooterSettingsScreen(
                     Spacer(modifier = Modifier.height(50.dp))
 
                     Row() {
+
                         Icon(
                             modifier = Modifier
-                                .weight(0.33f),
+                                .weight(0.33f)
+                                .clickable { isPopupVisible = true },
                             imageVector = Icons.Default.BatteryUnknown,
                             contentDescription = "Battery Ah",
                             tint = Color.LightGray
                         )
+                        
                         Icon(
                             modifier = Modifier
                                 .weight(0.33f),
@@ -189,6 +214,7 @@ fun ScooterSettingsScreen(
                                         fontSize = MaterialTheme.typography.bodyLarge.fontSize,
                                         color = MaterialTheme.colorScheme.onPrimary
                                     ),
+                                    textMetric = "Ah"
                                 )
                                 Picker(
                                     state = batteryVoltagePickerState,
@@ -200,6 +226,7 @@ fun ScooterSettingsScreen(
                                         fontSize = MaterialTheme.typography.bodyLarge.fontSize,
                                         color = MaterialTheme.colorScheme.onPrimary
                                     ),
+                                    textMetric = "V"
                                 )
                                 Picker(
                                     state = motorWattPickerState,
@@ -211,6 +238,7 @@ fun ScooterSettingsScreen(
                                         fontSize = MaterialTheme.typography.bodyLarge.fontSize,
                                         color = MaterialTheme.colorScheme.onPrimary
                                     ),
+                                    textMetric = "W"
                                 )
                             }
                         }
@@ -221,8 +249,6 @@ fun ScooterSettingsScreen(
                         modifier = Modifier.padding(vertical = 16.dp)
                     )
 
-
-
                 }
             }
 
@@ -232,8 +258,7 @@ fun ScooterSettingsScreen(
 }
 
 
-
-@RequiresApi(Build.VERSION_CODES.O)
+        @RequiresApi(Build.VERSION_CODES.O)
 @ContentNavGraph()
 @Destination
 @Composable

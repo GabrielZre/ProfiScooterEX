@@ -55,6 +55,7 @@ fun Picker(
     textModifier: Modifier = Modifier,
     textStyle: TextStyle = LocalTextStyle.current,
     dividerColor: Color = DarkColor2,
+    textMetric: String
 ) {
 
     val visibleItemsMiddle = visibleItemsCount / 2
@@ -68,7 +69,10 @@ fun Picker(
     val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
 
     val itemHeightPixels = remember { mutableStateOf(0) }
+    val itemWidthPixels = remember { mutableStateOf(0) }
+
     val itemHeightDp = pixelsToDp(itemHeightPixels.value)
+    val itemWidthDp = pixelsToDp(itemWidthPixels.value)
 
     val fadingEdgeGradient = remember {
         Brush.verticalGradient(
@@ -92,7 +96,7 @@ fun Picker(
             flingBehavior = flingBehavior,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .weight(0.8f)
+                .weight(1f)
                 .fillMaxWidth()
                 .height(itemHeightDp * visibleItemsCount)
                 .fadingEdge(fadingEdgeGradient)
@@ -111,16 +115,20 @@ fun Picker(
                     modifier = Modifier
                         .onSizeChanged { size ->
                             if (itemHeightPixels.value == 0) itemHeightPixels.value = size.height
+                            if (itemWidthPixels.value == 0) itemWidthPixels.value = size.width
                         }
+                        .offset(x = 4.dp)
                         .then(textModifier)
                 )
             }
         }
 
+
         Text(
-            text = "V",
-            style = textStyle,
-            modifier = Modifier.align(Alignment.CenterVertically).weight(0.2f)
+            text = textMetric,
+            style = textStyle.copy(fontSize = MaterialTheme.typography.bodySmall.fontSize),
+            modifier = Modifier.align(Alignment.CenterVertically).offset(x = itemWidthDp - 65.dp),
+            textAlign = TextAlign.Start
         )
     }
 
