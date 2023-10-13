@@ -139,6 +139,7 @@ fun DashboardTestScreen(
     bleConnectionState: ConnectionState,
     batteryVoltage: Float,
     deviceBatteryVoltage: Float,
+    batteryPercentage: Int,
     distanceTime: String,
     isStopWatchActive: Boolean,
     locationObserverState: LocationLiveData.LocationState
@@ -287,7 +288,7 @@ fun DashboardTestScreen(
                                 withStyle(
                                     style = SpanStyle(fontSize = 30.sp) // Set the font size for deviceBatteryVoltage
                                 ) {
-                                    append(batteryVoltage.toString())
+                                    append(batteryPercentage.toString())
                                 }
                                 withStyle(
                                     style = SpanStyle(fontSize = 22.sp) // Set the font size for "KM"
@@ -308,7 +309,8 @@ fun DashboardTestScreen(
                         requestForBluetooth = requestForBluetooth,
                         initializeBLE = initializeBLE,
                         disconnectBLE = disconnectBLE,
-                        batteryVoltage = batteryVoltage
+                        deviceBatteryVoltage = deviceBatteryVoltage,
+                        batteryPercentage = batteryPercentage
                     )
                     VerticalDivider(color = DarkColor)
                         Text(
@@ -416,6 +418,7 @@ fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
         bleConnectionState = dashboardViewModel.bleConnectionState,
         batteryVoltage = dashboardViewModel.batteryVoltage,
         deviceBatteryVoltage = dashboardViewModel.deviceBatteryVoltage,
+        batteryPercentage = dashboardViewModel.batteryPercentage,
         distanceTime = dashboardViewModel.stopWatch.formattedTime,
         isStopWatchActive = dashboardViewModel.stopWatch.isActive,
         locationObserverState = dashboardViewModel.locationObserverState
@@ -481,6 +484,7 @@ fun DashboardTestScreenPreview() {
                 bleConnectionState = ConnectionState.CurrentlyInitializing,
                 batteryVoltage = 0f,
                 deviceBatteryVoltage = 0f,
+                batteryPercentage = 0,
                 distanceTime = "00:00:00",
                 isStopWatchActive = false,
                 locationObserverState = LocationLiveData.LocationState.InActive

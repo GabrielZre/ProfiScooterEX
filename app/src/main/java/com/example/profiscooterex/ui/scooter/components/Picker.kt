@@ -1,10 +1,11 @@
 package com.example.profiscooterex.ui.scooter.components
 
+import android.util.Log
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -37,10 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.profiscooterex.ui.theme.Dark
-import com.example.profiscooterex.ui.theme.DarkColor
 import com.example.profiscooterex.ui.theme.DarkColor2
-import com.example.profiscooterex.ui.theme.LightColor2
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
@@ -50,7 +47,7 @@ fun Picker(
     items: List<String>,
     state: PickerState = rememberPickerState(),
     modifier: Modifier = Modifier,
-    startIndex: Int = 0,
+    startIndex: Int,
     visibleItemsCount: Int = 3,
     textModifier: Modifier = Modifier,
     textStyle: TextStyle = LocalTextStyle.current,
@@ -82,11 +79,16 @@ fun Picker(
         )
     }
 
+
+
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
             .map { index -> getItem(index + visibleItemsMiddle) }
             .distinctUntilChanged()
             .collect { item -> state.selectedItem = item }
+    }
+    LaunchedEffect(startIndex) {
+        listState.scrollToItem(startIndex)
     }
 
     Box(modifier = modifier, ) {
@@ -151,6 +153,7 @@ fun Picker(
         )
 
     }
+    Log.d("tag", " ISIDE${state.selectedItem}")
 
 }
 

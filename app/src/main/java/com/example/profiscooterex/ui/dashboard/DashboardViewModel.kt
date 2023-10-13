@@ -3,6 +3,7 @@ package com.example.profiscooterex.ui.dashboard
 import android.annotation.SuppressLint
 import android.app.Application
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
@@ -54,6 +55,11 @@ class DashboardViewModel
     var deviceBatteryVoltage by mutableStateOf(0f)
         private set
 
+    val scooterData: Scooter
+        get() = dataViewModel.scooterDataState.value
+
+    var batteryPercentage by mutableStateOf(0)
+
     var bleConnectionState by mutableStateOf<ConnectionState>(ConnectionState.Uninitialized)
 
     private var startBatteryVoltage: Float? = null
@@ -66,8 +72,6 @@ class DashboardViewModel
     val formatter = DateTimeFormatter.ofPattern("yyy-MM-dd HH:mm")
 
     var stopWatch = StopWatch()
-
-    var scooterData = dataViewModel.scooterDataState.value
 
     private val locationLiveData = LocationLiveData(application, stopWatch)
 
@@ -90,16 +94,20 @@ class DashboardViewModel
                         bleConnectionState = result.data.connectionState
                         batteryVoltage = result.data.batteryVoltage
                         deviceBatteryVoltage = result.data.deviceBatteryVoltage
+                        Log.d("tag", "success batteryVoltageVM: ${batteryVoltage}, batteryVoltageCollect: ${result.data.batteryVoltage}")
+                        batteryPercentage = calculateBatteryPercent(result.data.batteryVoltage)
                     }
 
                     is Resource.Loading -> {
                         bleInitializingMessage = result.message
                         bleConnectionState = ConnectionState.CurrentlyInitializing
+                        Log.d("tag", "loading batteryVoltageVM: ${batteryVoltage}, batteryVoltageCollect: ${result.data?.batteryVoltage}")
                     }
 
                     is Resource.Error -> {
                         bleErrorMessage = result.errorMessage
                         bleConnectionState = ConnectionState.Uninitialized
+                        Log.d("tag", "error batteryVoltageVM")
                     }
                 }
             }
@@ -109,6 +117,7 @@ class DashboardViewModel
     fun disconnectBLE() {
         startBatteryVoltage = null
         bleErrorMessage = null
+        batteryPercentage = 0
         bleConnectionState = ConnectionState.Uninitialized
         batteryVoltageReceiveManager.disconnect()
         batteryVoltageReceiveManager.closeConnection()
@@ -118,6 +127,8 @@ class DashboardViewModel
         bleErrorMessage = null
         subscribeToChanges()
         batteryVoltageReceiveManager.startReceiving()
+        Log.d("tag", "batteryVoltageVM: ${batteryVoltage}")
+
     }
 
     override fun onCleared() {
@@ -150,13 +161,21 @@ class DashboardViewModel
         return if (batteryDrain < 0f) 0f else batteryDrain
     }
 
-    /*fun calculateBatteryPercent(): Float {
-        return ((currentBatteryVoltage - bottomCutOffX) * 100) / (upperCutOffX - bottomCutOffX)
-    }*/
+    private fun calculateBatteryPercent(currentBatteryVoltage: Float): Int {
+        val batteryPercent = ((currentBatteryVoltage - scooterData.bottomCutOff.toFloat()) * 100) / (scooterData.upperCutOff.toFloat() - scooterData.bottomCutOff.toFloat())
+        return batteryPercent.toInt().coerceIn(0, 100)
+    }
 
-    /*fun calculateRemainingDistance(): Float {
-        return ((((batteryAhX * batteryVoltageX) / motorPowerX) * 30) * percentage) / 100 // default average 30 km/h
-    }*/
+    //fun calculateCustomDeterminant(): Float {
+    //
+    //}
+    fun calculateRemainingDistance(): Float {
+        return ((((scooterData.batteryAh.toFloat() * scooterData.batteryVoltage.toFloat()) / scooterData.motorWatt.toFloat()) * 25 ) * batteryPercentage) / 100 // default average 30 km/h
+    }
+
+    //fun calculateAverageMaxDistance(): Float {
+    //    return ((scooterData.batteryAh * batteryVoltage) / scooterData.motorWatt) * 25;
+    //}
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun saveTrip(tripName: String) {

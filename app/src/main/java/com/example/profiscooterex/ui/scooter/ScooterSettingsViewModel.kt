@@ -7,8 +7,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.example.profiscooterex.data.DataViewModel
 import com.example.profiscooterex.data.userDB.Scooter
+import com.example.profiscooterex.data.userDB.TripDetails
 import com.example.profiscooterex.location.LocationLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -19,12 +22,25 @@ class ScooterSettingsViewModel
 ) : AndroidViewModel(application) {
 
 
-    private val scooterData: Scooter
+    val scooterData: Scooter
         get() = dataViewModel.scooterDataState.value
 
-    var batteryAh by mutableStateOf(scooterData.batteryAh)
-    var batteryVoltage by mutableStateOf(scooterData.batteryVoltage)
-    var bottomCutOff by mutableStateOf(scooterData.bottomCutOff)
-    var motorWatt by mutableStateOf(scooterData.motorWatt)
-    var upperCutOff by mutableStateOf(scooterData.upperCutOff)
+
+
+
+    fun calculateStartIndex(scooterValue: String, minValue: String, maxValue: String, step: Int): Int {
+        return if (scooterValue.isNotBlank()) {
+            val index = (scooterValue.toInt() - minValue.toInt()) / step
+            index - 1
+        } else {
+            0
+        }
+    }
+
+    fun saveScooterSettings(scooter: Scooter) {
+        dataViewModel.sendScooterData(
+            scooter
+        )
+    }
+
 }

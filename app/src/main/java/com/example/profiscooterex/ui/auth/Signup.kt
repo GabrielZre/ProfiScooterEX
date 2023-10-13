@@ -3,6 +3,7 @@ package com.example.profiscooterex.ui.auth
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +31,8 @@ import com.example.profiscooterex.navigation.AuthNavGraph
 import com.example.profiscooterex.ui.destinations.HomeScreenDestination
 import com.example.profiscooterex.ui.destinations.LoginScreenDestination
 import com.example.profiscooterex.ui.theme.AppTheme
+import com.example.profiscooterex.ui.theme.DarkColor
+import com.example.profiscooterex.ui.theme.DarkGradient
 import com.example.profiscooterex.ui.theme.spacing
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -49,8 +52,10 @@ fun SignupScreen(viewModel: AuthViewModel? = hiltViewModel(), navigator: Destina
 
     ConstraintLayout(
         modifier = Modifier.fillMaxSize()
+            .background(DarkGradient)
+
     ) {
-        val (refHeader, refName, refEmail, refPassword, refButtonSignup, refTextSignup, refLoader) = createRefs()
+        val (refHeader, refName, refEmail, refPassword, refButtonSignup, refTextSignup, refLoader, refTextRegister) = createRefs()
         val spacing = MaterialTheme.spacing
 
         Box(
@@ -65,6 +70,18 @@ fun SignupScreen(viewModel: AuthViewModel? = hiltViewModel(), navigator: Destina
         ) {
             AuthHeader()
         }
+
+        Text(
+            text = "Register: ",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier.constrainAs(refTextRegister) {
+                bottom.linkTo(refName.bottom, spacing.extraLarge)
+                start.linkTo(parent.start, spacing.large)
+                end.linkTo(parent.end, spacing.large)
+                width = Dimension.fillToConstraints
+            },
+        )
 
         TextField(
             value = name,
@@ -133,7 +150,7 @@ fun SignupScreen(viewModel: AuthViewModel? = hiltViewModel(), navigator: Destina
             )
         )
 
-        Button(
+        OutlinedButton(
             onClick = {
                 viewModel?.signup(name, email, password)
             },
@@ -142,7 +159,8 @@ fun SignupScreen(viewModel: AuthViewModel? = hiltViewModel(), navigator: Destina
                 start.linkTo(parent.start, spacing.extraLarge)
                 end.linkTo(parent.end, spacing.extraLarge)
                 width = Dimension.fillToConstraints
-            }
+            },
+            colors = ButtonDefaults.buttonColors(DarkColor)
         ) {
             Text(text = stringResource(id = R.string.signup), style = MaterialTheme.typography.titleMedium)
         }
@@ -156,10 +174,6 @@ fun SignupScreen(viewModel: AuthViewModel? = hiltViewModel(), navigator: Destina
                     end.linkTo(parent.end, spacing.extraLarge)
                 }
                 .clickable {
-                    /*navController.navigate(ROUTE_LOGIN) {
-                        popUpTo(ROUTE_SIGNUP) { inclusive = true }
-                    }
-                    */
                     navigator.navigate(LoginScreenDestination) {
                         popUpTo(LoginScreenDestination.route) {inclusive = true}
                     }
@@ -167,7 +181,7 @@ fun SignupScreen(viewModel: AuthViewModel? = hiltViewModel(), navigator: Destina
             text = stringResource(id = R.string.already_have_account),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onPrimary
         )
 
         signupFlow?.value?.let {

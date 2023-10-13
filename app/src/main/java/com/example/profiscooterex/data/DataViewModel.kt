@@ -37,6 +37,9 @@ class DataViewModel @Inject constructor(
     private val _sendTripFlow = MutableStateFlow<Resource<Boolean>?>(null)
     val sendTripFlow: StateFlow<Resource<Boolean>?> = _sendTripFlow
 
+    private val _sendScooterDataFlow = MutableStateFlow<Resource<Boolean>?>(null)
+    val sendScooterDataFlow: StateFlow<Resource<Boolean>?> = _sendScooterDataFlow
+
     val userDataState  = mutableStateOf(User())
     val tripsDataState  = mutableStateOf<List<TripDetails>>(emptyList())
     val scooterDataState = mutableStateOf(Scooter())
@@ -76,6 +79,13 @@ class DataViewModel @Inject constructor(
             sendTripDataToDB(trip, _sendTripFlow)
         }
     }
+
+    fun sendScooterData(scooter: Scooter) {
+        viewModelScope.launch {
+            sendScooterDataToDB(scooter, _sendScooterDataFlow)
+        }
+    }
+
     private suspend fun getUserDataFromDB() : User {
         var userData = User()
 
@@ -104,6 +114,20 @@ class DataViewModel @Inject constructor(
                     Log.e("tag", "Scooter data retrieval cancelled: ${databaseError.toException()}")
                 }
             })
+    }
+
+    private fun sendScooterDataToDB(scooter: Scooter, sendScooterDataFlow: MutableStateFlow<Resource<Boolean>?>) {
+        sendScooterDataFlow.value = Resource.Loading
+        reference.child(currentUser?.uid!!)
+            .child("scooter")
+            .setValue(scooter)
+            .addOnCompleteListener {task ->
+                if (task.isSuccessful) {
+                    sendScooterDataFlow.value = Resource.Success(true)
+                } else {
+                    sendScooterDataFlow.value = Resource.Failure(Exception(task.exception?.message ?: "Błąd"))
+                }
+            }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

@@ -28,7 +28,7 @@ fun AuthHeader() {
         Image(
             modifier = Modifier
                 .size(128.dp, 128.dp),
-            painter = painterResource(id = R.drawable.ic_app_logo),
+            painter = painterResource(id = R.drawable.profiscooter_logo),
             contentDescription = stringResource(id = R.string.app_name)
         )
 
@@ -40,7 +40,7 @@ fun AuthHeader() {
             text = stringResource(id = R.string.app_name),
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onPrimary
         )
     }
 }

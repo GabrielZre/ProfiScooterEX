@@ -8,10 +8,10 @@ data class User(
 )
 
 data class Scooter(
-    val batteryAh: String = "",
-    val batteryVoltage: String = "",
-    val bottomCutOff: String = "",
-    val motorWatt: String = "",
-    val upperCutOff: String = ""
+    var batteryAh: String = "",
+    var batteryVoltage: String = "",
+    var bottomCutOff: String = "",
+    var motorWatt: String = "",
+    var upperCutOff: String = ""
 )
 

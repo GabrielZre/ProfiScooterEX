@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.profiscooterex.R
 import com.example.profiscooterex.ui.destinations.DashboardTestScreenDestination
 import com.example.profiscooterex.ui.destinations.HomeScreenDestination
+import com.example.profiscooterex.ui.destinations.ScooterSettingsScreenDestination
 import com.ramcosta.composedestinations.spec.DirectionDestinationSpec
 
 enum class BottomBarDestination(

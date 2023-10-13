@@ -22,6 +22,7 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -42,13 +43,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.profiscooterex.R
 import com.example.profiscooterex.data.DataViewModel
 import com.example.profiscooterex.data.userDB.Scooter
 import com.example.profiscooterex.data.userDB.TripDetails
 import com.example.profiscooterex.data.userDB.User
 import com.example.profiscooterex.navigation.BottomBar
+import com.example.profiscooterex.navigation.BottomBarDestination
 import com.example.profiscooterex.navigation.ContentNavGraph
+import com.example.profiscooterex.navigation.checkForDestinations
 import com.example.profiscooterex.ui.auth.AuthViewModel
 import com.example.profiscooterex.ui.dashboard.components.dialogs.TripDialog
 import com.example.profiscooterex.ui.destinations.DashboardTestScreenDestination
@@ -66,6 +70,7 @@ import com.example.profiscooterex.ui.theme.spacing
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
+import com.ramcosta.composedestinations.navigation.navigate
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -107,12 +112,12 @@ fun HomeScreen(
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.End
                 ) {
-                    ElevatedButton(
+                    OutlinedButton(
                         onClick = {
                             logout()
                             goToLoginScreen()
                         },
-                        colors = ButtonDefaults.buttonColors(LightColor)
+                        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onSecondaryContainer)
                     ) {
                         Icon(
                             Icons.Default.Logout,
@@ -146,12 +151,12 @@ fun HomeScreen(
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.End
                 ) {
-                    ElevatedButton(
+                    OutlinedButton(
                         onClick = {
                             goToScooterSettingsScreen()
-                            Log.d("tag", "scooterDataState: ${scooterData?.batteryAh}")
+                            Log.d("tag", "scooterDataState: ${scooterData?.bottomCutOff}")
                         },
-                        colors = ButtonDefaults.buttonColors(LightColor)
+                        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onSecondaryContainer)
                     ) {
                         Icon(
                             Icons.Default.ElectricScooter,
