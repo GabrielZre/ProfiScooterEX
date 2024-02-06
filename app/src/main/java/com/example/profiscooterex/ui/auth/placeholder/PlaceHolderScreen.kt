@@ -22,12 +22,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.example.profiscooterex.R
 import com.example.profiscooterex.data.Resource
 import com.example.profiscooterex.navigation.AuthNavGraph
 import com.example.profiscooterex.ui.auth.AuthViewModel
 import com.example.profiscooterex.ui.destinations.HomeScreenDestination
 import com.example.profiscooterex.ui.destinations.LoginScreenDestination
+import com.example.profiscooterex.ui.destinations.PlaceHolderScreenDestination
 import com.example.profiscooterex.ui.theme.AppTheme
 import com.example.profiscooterex.ui.theme.DarkGradient
 import com.google.firebase.auth.FirebaseUser
@@ -57,17 +61,20 @@ fun PlaceHolderScreen(
         Image(painterResource(id = R.drawable.profiscooter_logo), contentDescription = "Place Holder")
     }
 
-
     LaunchedEffect(Unit) {
         coroutineScope.launch {
             delay(1000)
             if (viewModel?.currentUser == null) {
+                navigator.popBackStack()
                 navigator.navigate(LoginScreenDestination) {
                     popUpTo(LoginScreenDestination.route) { inclusive = true }
+                    //launchSingleTop = true
                 }
             } else {
+                navigator.popBackStack()
                 navigator.navigate(HomeScreenDestination) {
                     popUpTo(HomeScreenDestination.route) { inclusive = true }
+                    //launchSingleTop = true
                 }
             }
         }

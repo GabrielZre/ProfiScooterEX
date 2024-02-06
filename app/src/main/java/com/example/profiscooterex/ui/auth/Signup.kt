@@ -203,6 +203,7 @@ fun SignupScreen(viewModel: AuthViewModel? = hiltViewModel(), navigator: Destina
                         /*navController.navigate(ROUTE_HOME){
                             popUpTo(ROUTE_HOME) { inclusive = true }
                         }*/
+                        navigator.popBackStack()
                         navigator.navigate(HomeScreenDestination) {
                             popUpTo(HomeScreenDestination.route) { inclusive = true }
                         }

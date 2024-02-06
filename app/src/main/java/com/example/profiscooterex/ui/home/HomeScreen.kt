@@ -44,6 +44,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.example.profiscooterex.R
 import com.example.profiscooterex.data.DataViewModel
 import com.example.profiscooterex.data.userDB.Scooter
@@ -53,11 +55,14 @@ import com.example.profiscooterex.navigation.BottomBar
 import com.example.profiscooterex.navigation.BottomBarDestination
 import com.example.profiscooterex.navigation.ContentNavGraph
 import com.example.profiscooterex.navigation.checkForDestinations
+import com.example.profiscooterex.ui.NavGraphs
+import com.example.profiscooterex.ui.appCurrentDestinationAsState
 import com.example.profiscooterex.ui.auth.AuthViewModel
 import com.example.profiscooterex.ui.dashboard.components.dialogs.TripDialog
 import com.example.profiscooterex.ui.destinations.DashboardTestScreenDestination
 import com.example.profiscooterex.ui.destinations.LoginScreenDestination
 import com.example.profiscooterex.ui.destinations.ScooterSettingsScreenDestination
+import com.example.profiscooterex.ui.startAppDestination
 import com.example.profiscooterex.ui.theme.AppTheme
 import com.example.profiscooterex.ui.theme.DarkColor
 import com.example.profiscooterex.ui.theme.DarkColor2
@@ -289,7 +294,9 @@ fun HistoryItem(trip : TripDetails) {
 fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), dataViewModel: DataViewModel? = hiltViewModel(), navigator: DestinationsNavigator) {
     HomeScreen(
         logout = { viewModel?.logout() },
-        goToLoginScreen = { navigator.navigate(LoginScreenDestination) {
+        goToLoginScreen = {
+            navigator.popBackStack()
+            navigator.navigate(LoginScreenDestination) {
             popUpTo(LoginScreenDestination.route) {inclusive = true}
         } },
         goToScooterSettingsScreen = { navigator.navigate(ScooterSettingsScreenDestination) {

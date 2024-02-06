@@ -180,6 +180,7 @@ fun LoginScreen(viewModel : AuthViewModel? = hiltViewModel(), navigator: Destina
                 }
                 is Resource.Success -> {
                     LaunchedEffect(Unit) {
+                        navigator.popBackStack()
                         navigator.navigate(HomeScreenDestination) {
                             popUpTo(HomeScreenDestination.route) {inclusive = true}
                         }

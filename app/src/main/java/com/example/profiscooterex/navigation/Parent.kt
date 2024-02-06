@@ -88,7 +88,6 @@ fun Parent() {
 fun BottomBar(
     navController: NavController
 ) {
-
     val currentDestination: Destination = navController.appCurrentDestinationAsState().value
         ?: NavGraphs.root.startAppDestination
 
