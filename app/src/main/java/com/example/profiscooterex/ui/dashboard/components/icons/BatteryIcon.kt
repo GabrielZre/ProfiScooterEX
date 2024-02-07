@@ -30,7 +30,7 @@ import com.google.accompanist.permissions.MultiplePermissionsState
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun BatteryIcon(bleConnectionState: ConnectionState, isBluetoothEnabled: Boolean, bluetoothPermissionsState: MultiplePermissionsState, requestForBluetooth: () -> Unit, initializeBLE: () -> Unit, disconnectBLE: () -> Unit, deviceBatteryVoltage: Float, batteryPercentage: Int) {
+fun BatteryIcon(bleConnectionState: ConnectionState, isBluetoothEnabled: Boolean, bluetoothPermissionsState: MultiplePermissionsState, requestForBluetooth: () -> Unit, initializeBLE: () -> Unit, disconnectBLE: () -> Unit, deviceBatteryVoltage: Float, batteryPercentage: Float) {
     val bluetoothTint = determineBluetoothTint(bleConnectionState, isBluetoothEnabled, bluetoothPermissionsState)
     val batteryIcon =  determineBatteryIcon(bleConnectionState, isBluetoothEnabled, bluetoothPermissionsState, deviceBatteryVoltage, batteryPercentage)
     val batteryTint = determineBatteryColor(bleConnectionState, isBluetoothEnabled, bluetoothPermissionsState, deviceBatteryVoltage, batteryPercentage)
@@ -78,7 +78,7 @@ fun BatteryIcon(bleConnectionState: ConnectionState, isBluetoothEnabled: Boolean
 
 
 @OptIn(ExperimentalPermissionsApi::class)
-fun determineBatteryColor(bleConnectionState: ConnectionState, isBluetoothEnabled: Boolean, bluetoothPermissionsState: MultiplePermissionsState, deviceBatteryVoltage: Float, batteryPercentage: Int) : Color {
+fun determineBatteryColor(bleConnectionState: ConnectionState, isBluetoothEnabled: Boolean, bluetoothPermissionsState: MultiplePermissionsState, deviceBatteryVoltage: Float, batteryPercentage: Float) : Color {
     return when {
         (bleConnectionState == ConnectionState.Uninitialized ||
                 bleConnectionState == ConnectionState.Disconnected ||
@@ -90,7 +90,7 @@ fun determineBatteryColor(bleConnectionState: ConnectionState, isBluetoothEnable
     }
 }
 @OptIn(ExperimentalPermissionsApi::class)
-fun determineBatteryIcon(bleConnectionState: ConnectionState, isBluetoothEnabled: Boolean, bluetoothPermissionsState: MultiplePermissionsState, deviceBatteryVoltage: Float, batteryPercentage: Int) : ImageVector {
+fun determineBatteryIcon(bleConnectionState: ConnectionState, isBluetoothEnabled: Boolean, bluetoothPermissionsState: MultiplePermissionsState, deviceBatteryVoltage: Float, batteryPercentage: Float) : ImageVector {
     return when {
         (bleConnectionState == ConnectionState.Uninitialized ||
                 bleConnectionState == ConnectionState.Disconnected ||

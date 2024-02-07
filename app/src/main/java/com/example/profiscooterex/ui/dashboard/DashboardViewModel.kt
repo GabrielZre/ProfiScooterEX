@@ -5,12 +5,6 @@ import android.app.Application
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.tween
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -30,12 +24,10 @@ import com.example.profiscooterex.data.userDB.Scooter
 import com.example.profiscooterex.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlin.math.roundToLong
 
 
 @HiltViewModel
@@ -52,13 +44,13 @@ class DashboardViewModel
         private set
     var batteryVoltage by mutableStateOf(0f)
         private set
-    var deviceBatteryVoltage by mutableStateOf(0f)
+    var whEnergyConsumed by mutableStateOf(0f)
         private set
 
     val scooterData: Scooter
         get() = dataViewModel.scooterDataState.value
 
-    var batteryPercentage by mutableStateOf(0)
+    var batteryPercentage by mutableStateOf(0f)
 
     var bleConnectionState by mutableStateOf<ConnectionState>(ConnectionState.Uninitialized)
 
@@ -90,24 +82,25 @@ class DashboardViewModel
             batteryVoltageReceiveManager.data.collect{ result ->
                 when(result) {
                     is Resource.Success -> {
-                        if(startBatteryVoltage == null) startBatteryVoltage = result.data.batteryVoltage
                         bleConnectionState = result.data.connectionState
-                        batteryVoltage = result.data.batteryVoltage
-                        deviceBatteryVoltage = result.data.deviceBatteryVoltage
-                        Log.d("tag", "success batteryVoltageVM: ${batteryVoltage}, batteryVoltageCollect: ${result.data.batteryVoltage}")
-                        batteryPercentage = calculateBatteryPercent(result.data.batteryVoltage)
+                        if(startBatteryVoltage == null && bleConnectionState == ConnectionState.Connected ) {
+                            startBatteryVoltage = result.data.batteryVoltage
+                        }
+                        if(startBatteryVoltage != null) {
+                            batteryVoltage = result.data.batteryVoltage
+                            whEnergyConsumed = result.data.whEnergyConsumed
+                            batteryPercentage = calculateBatteryPercent(result.data.whEnergyConsumed)
+                        }
                     }
 
                     is Resource.Loading -> {
                         bleInitializingMessage = result.message
                         bleConnectionState = ConnectionState.CurrentlyInitializing
-                        Log.d("tag", "loading batteryVoltageVM: ${batteryVoltage}, batteryVoltageCollect: ${result.data?.batteryVoltage}")
                     }
 
                     is Resource.Error -> {
                         bleErrorMessage = result.errorMessage
                         bleConnectionState = ConnectionState.Uninitialized
-                        Log.d("tag", "error batteryVoltageVM")
                     }
                 }
             }
@@ -117,7 +110,7 @@ class DashboardViewModel
     fun disconnectBLE() {
         startBatteryVoltage = null
         bleErrorMessage = null
-        batteryPercentage = 0
+        batteryPercentage = 0f
         bleConnectionState = ConnectionState.Uninitialized
         batteryVoltageReceiveManager.disconnect()
         batteryVoltageReceiveManager.closeConnection()
@@ -127,8 +120,6 @@ class DashboardViewModel
         bleErrorMessage = null
         subscribeToChanges()
         batteryVoltageReceiveManager.startReceiving()
-        Log.d("tag", "batteryVoltageVM: ${batteryVoltage}")
-
     }
 
     override fun onCleared() {
@@ -161,14 +152,23 @@ class DashboardViewModel
         return if (batteryDrain < 0f) 0f else batteryDrain
     }
 
-    private fun calculateBatteryPercent(currentBatteryVoltage: Float): Int {
-        val batteryPercent = ((currentBatteryVoltage - scooterData.bottomCutOff.toFloat()) * 100) / (scooterData.upperCutOff.toFloat() - scooterData.bottomCutOff.toFloat())
-        return batteryPercent.toInt().coerceIn(0, 100)
+    private fun calculateBatteryPercent(whEnergyConsumed: Float) : Float {
+        return (calculateWhLeft(whEnergyConsumed) / calculateOriginalWhCapacity()) * 100
     }
 
-    //fun calculateCustomDeterminant(): Float {
-    //
-    //}
+    private fun calculateWhLeft(whEnergyConsumed: Float) : Float {
+        val startWhLeft = (calculateOriginalWhCapacity() * (calculateStartBatteryPercent() / 100))
+        return startWhLeft - whEnergyConsumed
+    }
+
+    private fun calculateStartBatteryPercent(): Float {
+        val batteryPercent = ((startBatteryVoltage!! - scooterData.bottomCutOff.toFloat()) * 100) / (scooterData.upperCutOff.toFloat() - scooterData.bottomCutOff.toFloat())
+        return batteryPercent.coerceIn(0f, 100f)
+    }
+    private fun calculateOriginalWhCapacity(): Float {
+        return (scooterData.batteryAh.toFloat() * scooterData.batteryVoltage.toFloat())
+    }
+
     fun calculateRemainingDistance(): Float {
         return ((((scooterData.batteryAh.toFloat() * scooterData.batteryVoltage.toFloat()) / scooterData.motorWatt.toFloat()) * 25 ) * batteryPercentage) / 100 // default average 30 km/h
     }

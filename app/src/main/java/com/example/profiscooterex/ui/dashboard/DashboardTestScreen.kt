@@ -1,50 +1,28 @@
 package com.example.profiscooterex.ui.dashboard
 
 import android.annotation.SuppressLint
-import android.graphics.drawable.Icon
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Battery0Bar
-import androidx.compose.material.icons.filled.Battery1Bar
-import androidx.compose.material.icons.filled.Battery2Bar
-import androidx.compose.material.icons.filled.Battery3Bar
-import androidx.compose.material.icons.filled.Battery4Bar
-import androidx.compose.material.icons.filled.Battery5Bar
-import androidx.compose.material.icons.filled.Battery6Bar
-import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.BluetoothDisabled
 import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -56,11 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -85,9 +59,7 @@ import com.example.profiscooterex.ui.dashboard.components.DashboardSpeedIndicato
 import com.example.profiscooterex.ui.dashboard.components.dialogs.TripDialog
 import com.example.profiscooterex.ui.dashboard.components.icons.BatteryIcon
 import com.example.profiscooterex.ui.theme.AppTheme
-import com.example.profiscooterex.ui.theme.Dark
 import com.example.profiscooterex.ui.theme.DarkColor
-import com.example.profiscooterex.ui.theme.DarkColor2
 import com.example.profiscooterex.ui.theme.DarkGradient
 import com.example.profiscooterex.ui.theme.LightColor
 import com.example.profiscooterex.ui.theme.spacing
@@ -139,7 +111,7 @@ fun DashboardTestScreen(
     bleConnectionState: ConnectionState,
     batteryVoltage: Float,
     deviceBatteryVoltage: Float,
-    batteryPercentage: Int,
+    batteryPercentage: Float,
     distanceTime: String,
     isStopWatchActive: Boolean,
     locationObserverState: LocationLiveData.LocationState
@@ -288,7 +260,7 @@ fun DashboardTestScreen(
                                 withStyle(
                                     style = SpanStyle(fontSize = 30.sp) // Set the font size for deviceBatteryVoltage
                                 ) {
-                                    append(batteryPercentage.toString())
+                                    append(String.format("%.1f", batteryPercentage))
                                 }
                                 withStyle(
                                     style = SpanStyle(fontSize = 22.sp) // Set the font size for "KM"
@@ -417,7 +389,7 @@ fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
         disconnectBLE = dashboardViewModel::disconnectBLE,
         bleConnectionState = dashboardViewModel.bleConnectionState,
         batteryVoltage = dashboardViewModel.batteryVoltage,
-        deviceBatteryVoltage = dashboardViewModel.deviceBatteryVoltage,
+        deviceBatteryVoltage = dashboardViewModel.whEnergyConsumed,
         batteryPercentage = dashboardViewModel.batteryPercentage,
         distanceTime = dashboardViewModel.stopWatch.formattedTime,
         isStopWatchActive = dashboardViewModel.stopWatch.isActive,
@@ -484,7 +456,7 @@ fun DashboardTestScreenPreview() {
                 bleConnectionState = ConnectionState.CurrentlyInitializing,
                 batteryVoltage = 0f,
                 deviceBatteryVoltage = 0f,
-                batteryPercentage = 0,
+                batteryPercentage = 0f,
                 distanceTime = "00:00:00",
                 isStopWatchActive = false,
                 locationObserverState = LocationLiveData.LocationState.InActive
