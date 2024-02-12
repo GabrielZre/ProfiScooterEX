@@ -1,5 +1,6 @@
 package com.example.profiscooterex.di
 
+import android.content.Context
 import com.example.profiscooterex.permissions.location.LocationChecker
 import com.example.profiscooterex.permissions.location.impl.AndroidLocationChecker
 import com.example.profiscooterex.permissions.PermissionChecker
@@ -12,6 +13,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import javax.inject.Singleton
 
@@ -35,6 +37,12 @@ class ActivityRetainedModule {
     @Provides
     fun provideBluetoothChecker(impl: AndroidBluetoothChecker) : BluetoothChecker {
         return impl
+    }
+
+    @ActivityRetainedScoped
+    @Provides
+    fun provideContext(@ApplicationContext context: Context) : Context {
+        return context
     }
 
 }

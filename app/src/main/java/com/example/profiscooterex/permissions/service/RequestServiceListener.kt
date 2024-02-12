@@ -1,6 +1,5 @@
 package com.example.profiscooterex.permissions.service
 
-import android.util.Log
 import javax.inject.Inject
 
 class RequestServiceListener @Inject constructor(){

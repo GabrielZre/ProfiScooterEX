@@ -7,6 +7,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.profiscooterex.data.userDB.GpsData
 import com.example.profiscooterex.data.userDB.Scooter
 import com.example.profiscooterex.data.userDB.TripDetails
 import com.example.profiscooterex.data.userDB.User
@@ -17,15 +18,12 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 
+@Suppress("NAME_SHADOWING")
 @HiltViewModel
 class DataViewModel @Inject constructor(
 ) : ViewModel() {
@@ -35,43 +33,44 @@ class DataViewModel @Inject constructor(
         .getReference("Users")
 
     private val _sendTripFlow = MutableStateFlow<Resource<Boolean>?>(null)
-    val sendTripFlow: StateFlow<Resource<Boolean>?> = _sendTripFlow
 
     private val _sendScooterDataFlow = MutableStateFlow<Resource<Boolean>?>(null)
-    val sendScooterDataFlow: StateFlow<Resource<Boolean>?> = _sendScooterDataFlow
 
     val userDataState  = mutableStateOf(User())
     val tripsDataState  = mutableStateOf<List<TripDetails>>(emptyList())
     val scooterDataState = mutableStateOf(Scooter())
+    val gpsDataState = mutableStateOf(GpsData())
 
     init {
         getUserData()
         getTripData()
         getScooterData()
+        getGpsData()
     }
 
     private fun getUserData() {
-
         viewModelScope.launch {
             userDataState.value = getUserDataFromDB()
         }
-
     }
 
     private fun getTripData() {
         viewModelScope.launch {
             setupTripDataListener()
         }
-
     }
 
     private fun getScooterData() {
         viewModelScope.launch {
             getScooterDataFromDB()
         }
-
     }
 
+    private fun getGpsData() {
+        viewModelScope.launch {
+            getGpsDataFromDB()
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun sendTripData(trip: TripDetails) {
@@ -83,6 +82,12 @@ class DataViewModel @Inject constructor(
     fun sendScooterData(scooter: Scooter) {
         viewModelScope.launch {
             sendScooterDataToDB(scooter, _sendScooterDataFlow)
+        }
+    }
+
+    fun removeTripData(tripDate: String) {
+        viewModelScope.launch {
+            removeTripFromDB(tripDate, _sendScooterDataFlow)
         }
     }
 
@@ -125,25 +130,39 @@ class DataViewModel @Inject constructor(
                 if (task.isSuccessful) {
                     sendScooterDataFlow.value = Resource.Success(true)
                 } else {
-                    sendScooterDataFlow.value = Resource.Failure(Exception(task.exception?.message ?: "Błąd"))
+                    sendScooterDataFlow.value = Resource.Failure(Exception(task.exception?.message ?: "Error"))
                 }
             }
     }
 
+    private fun getGpsDataFromDB() {
+        reference.child(currentUser?.uid!!).child("location")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    try {
+                        gpsDataState.value = dataSnapshot.getValue(GpsData::class.java)!!
+                    } catch (e: Exception) {
+                        Log.e("error", "Failed to parse gps data", e)
+                    }
+                }
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.e("tag", "Gps data retrieval cancelled: ${databaseError.toException()}")
+                }
+            })
+    }
+
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun sendTripDataToDB(trip: TripDetails, sendTripFlow: MutableStateFlow<Resource<Boolean>?>)  {
-        val formatter = DateTimeFormatter.ofPattern("yyy-MM-dd HH:mm:ss:n")
-        val time = LocalDateTime.now().format(formatter)
-
         sendTripFlow.value = Resource.Loading
         reference.child(currentUser?.uid!!).child("trips")
-            .child(time)
+            .child(trip.dateTime)
             .setValue(trip)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     sendTripFlow.value = Resource.Success(true)
                 } else {
-                    sendTripFlow.value = Resource.Failure(Exception(task.exception?.message ?: "Błąd"))
+                    sendTripFlow.value = Resource.Failure(Exception(task.exception?.message ?: "Error"))
                 }
             }
     }
@@ -170,6 +189,20 @@ class DataViewModel @Inject constructor(
                 }
             })
     }
-}
 
+    private fun removeTripFromDB(tripDate: String, sendTripFlow: MutableStateFlow<Resource<Boolean>?>) {
+
+        sendTripFlow.value = Resource.Loading
+        reference.child(currentUser?.uid!!).child("trips")
+            .child(tripDate)
+            .removeValue()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    sendTripFlow.value = Resource.Success(true)
+                } else {
+                    sendTripFlow.value = Resource.Failure(Exception(task.exception?.message ?: "Error"))
+                }
+            }
+    }
+}
 

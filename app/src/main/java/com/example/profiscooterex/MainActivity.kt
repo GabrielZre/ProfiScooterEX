@@ -6,25 +6,20 @@ import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.Window
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.profiscooterex.navigation.Parent
 import com.example.profiscooterex.permissions.service.RequestServiceListener
 import com.example.profiscooterex.permissions.service.RequestServicesListener
-import com.example.profiscooterex.permissions.service.ServiceViewModel
-//import com.example.profiscooterex.data.userDB.DataViewModel
-//import com.example.profiscooterex.navigation.AppNavHost
 import com.example.profiscooterex.ui.theme.AppTheme
-import com.ramcosta.composedestinations.DestinationsNavHost
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+@Suppress("DEPRECATION")
 @AndroidEntryPoint
 class MainActivity: AppCompatActivity(), RequestServicesListener {
 
@@ -35,8 +30,8 @@ class MainActivity: AppCompatActivity(), RequestServicesListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        requestWindowFeature(Window.FEATURE_NO_TITLE)
+        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
         setContent {
             AppTheme {
                 Parent()

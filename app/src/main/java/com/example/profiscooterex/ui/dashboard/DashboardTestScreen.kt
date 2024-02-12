@@ -3,10 +3,14 @@ package com.example.profiscooterex.ui.dashboard
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,18 +26,23 @@ import androidx.compose.material.icons.filled.BluetoothDisabled
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.SpanStyle
@@ -50,19 +59,23 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import com.example.profiscooterex.data.ble.ConnectionState
 import com.example.profiscooterex.data.userDB.LocationDetails
+import com.example.profiscooterex.data.userDB.Scooter
+import com.example.profiscooterex.data.userDB.areFieldsNotEmpty
 import com.example.profiscooterex.location.LocationLiveData
 import com.example.profiscooterex.navigation.ContentNavGraph
 import com.example.profiscooterex.permissions.BluetoothPermissions
 import com.example.profiscooterex.permissions.LocationPermission
 import com.example.profiscooterex.permissions.PermissionsViewModel
+import com.example.profiscooterex.permissions.network.ConnectivityObserver
 import com.example.profiscooterex.ui.dashboard.components.DashboardSpeedIndicator
 import com.example.profiscooterex.ui.dashboard.components.dialogs.TripDialog
 import com.example.profiscooterex.ui.dashboard.components.icons.BatteryIcon
+import com.example.profiscooterex.ui.scooter.components.NetworkSnackBar
 import com.example.profiscooterex.ui.theme.AppTheme
 import com.example.profiscooterex.ui.theme.DarkColor
+import com.example.profiscooterex.ui.theme.DarkColor2
 import com.example.profiscooterex.ui.theme.DarkGradient
 import com.example.profiscooterex.ui.theme.LightColor
-import com.example.profiscooterex.ui.theme.spacing
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.PermissionState
@@ -71,7 +84,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 enum class DashboardState {
@@ -94,10 +107,10 @@ fun determineDashboardState(isLocationEnabled: Boolean, locationPermissionState:
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun DashboardTestScreen(
-    isLocationEnabled : Boolean,
-    isBluetoothEnabled : Boolean,
-    locationPermissionState : PermissionState,
-    bluetoothPermissionsState : MultiplePermissionsState,
+    isLocationEnabled: Boolean,
+    isBluetoothEnabled: Boolean,
+    locationPermissionState: PermissionState,
+    bluetoothPermissionsState: MultiplePermissionsState,
     requestForLocation: () -> Unit,
     requestForBluetooth: () -> Unit,
     distanceTrip: Float,
@@ -109,29 +122,33 @@ fun DashboardTestScreen(
     initializeBLE: () -> Unit,
     disconnectBLE: () -> Unit,
     bleConnectionState: ConnectionState,
-    batteryVoltage: Float,
-    deviceBatteryVoltage: Float,
+    remainingDistance: Float,
     batteryPercentage: Float,
     distanceTime: String,
     isStopWatchActive: Boolean,
-    locationObserverState: LocationLiveData.LocationState
+    locationObserverState: LocationLiveData.LocationState,
+    efficiencyFactor: Float,
+    networkStatus: ConnectivityObserver.Status,
+    scooterData: Scooter
 ) {
 
-    val spacing = MaterialTheme.spacing
     val coroutineScope = rememberCoroutineScope()
     val openAlertDialog = remember { mutableStateOf(false) }
+    val snackBarHostState = remember { SnackbarHostState() }
 
     val locationState by mutableStateOf(determineDashboardState(isLocationEnabled, locationPermissionState, locationObserverState))
     val onClickDashboard: () -> Unit = {
         coroutineScope.launch {
-            if (locationState == DashboardState.Ready || locationState == DashboardState.Stopped) {
-                start()
-            }
-            else if (locationState == DashboardState.Disabled){
-                requestLocationPermissions(isLocationEnabled, requestForLocation, locationPermissionState)
-            }
-            else {
-                stop()
+            when (locationState) {
+                DashboardState.Ready, DashboardState.Stopped -> {
+                    start()
+                }
+                DashboardState.Disabled -> {
+                    requestLocationPermissions(isLocationEnabled, requestForLocation, locationPermissionState)
+                }
+                else -> {
+                    stop()
+                }
             }
         }
     }
@@ -158,9 +175,20 @@ fun DashboardTestScreen(
         ) {
             
             Button(
-                onClick = { openAlertDialog.value = true },
+                onClick = {
+                    if(scooterData.areFieldsNotEmpty()) {
+                        openAlertDialog.value = true
+                    } else {
+                        coroutineScope.launch {
+                            snackBarHostState.showSnackbar(
+                                message = "Scooter data unavailable",
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }
+                          },
                 shape = RoundedCornerShape(0.dp, 0.dp, 10.dp, 10.dp),
-                colors = ButtonDefaults.buttonColors(LightColor)
+                colors = buttonColors(LightColor)
             ) {
                 Row(
                     modifier = Modifier
@@ -192,51 +220,9 @@ fun DashboardTestScreen(
             }
 
             DashboardSpeedIndicator(currentSpeed, averageSpeed, distanceTrip, locationState, onClickDashboard, onLongClickDashboard)
-            /*Button(
-                onClick = { openAlertDialog.value = true },
-                modifier = Modifier
-            ) {
-                Text(text = "Save Trip")
-            }*/
 
-            Row {
-                /*Button(
-                    onClick = {
-                        coroutineScope.launch {
-                            if (bleConnectionState == ConnectionState.Uninitialized ||
-                                bleConnectionState == ConnectionState.Disconnected) {
-                                if(checkBluetoothPermissions(isBluetoothEnabled, bluetoothPermissionsState)) {
-                                    initializeBLE()
-                                } else {
-                                    requestBluetoothPermissions(isBluetoothEnabled, requestForBluetooth, bluetoothPermissionsState)
-                                }
-                            } else {
-                                disconnectBLE()
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                ) {
-                    Text(text = if (bleConnectionState == ConnectionState.Connected) "Disconnect"
-                        else if (bleConnectionState == ConnectionState.CurrentlyInitializing) "Initializing"
-                        else "Init"
-                    )
-                }*/
+            ShowProgress(efficiencyFactor)
 
-            }
-
-            /*if(bleConnectionState == ConnectionState.CurrentlyInitializing){
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ){
-                    CircularProgressIndicator()
-
-                }
-            }
-*/
             Column(
                 modifier = Modifier
                     .padding(20.dp, 0.dp, 20.dp, 40.dp)
@@ -258,12 +244,12 @@ fun DashboardTestScreen(
                                 .weight(1f),
                             text =  buildAnnotatedString {
                                 withStyle(
-                                    style = SpanStyle(fontSize = 30.sp) // Set the font size for deviceBatteryVoltage
+                                    style = SpanStyle(fontSize = 30.sp)
                                 ) {
                                     append(String.format("%.1f", batteryPercentage))
                                 }
                                 withStyle(
-                                    style = SpanStyle(fontSize = 22.sp) // Set the font size for "KM"
+                                    style = SpanStyle(fontSize = 22.sp)
                                 ) {
                                     append("%")
                                 }
@@ -281,8 +267,9 @@ fun DashboardTestScreen(
                         requestForBluetooth = requestForBluetooth,
                         initializeBLE = initializeBLE,
                         disconnectBLE = disconnectBLE,
-                        deviceBatteryVoltage = deviceBatteryVoltage,
-                        batteryPercentage = batteryPercentage
+                        batteryPercentage = batteryPercentage,
+                        scooterData = scooterData,
+                        showSnackBar = { showSnackBar(coroutineScope, snackBarHostState) }
                     )
                     VerticalDivider(color = DarkColor)
                         Text(
@@ -290,12 +277,12 @@ fun DashboardTestScreen(
                                 .weight(1f),
                             text =  buildAnnotatedString {
                                 withStyle(
-                                    style = SpanStyle(fontSize = 30.sp) // Set the font size for deviceBatteryVoltage
+                                    style = SpanStyle(fontSize = 30.sp)
                                 ) {
-                                    append(deviceBatteryVoltage.toString())
+                                    append(if (remainingDistance == 0f) "- " else String.format("%.1f", remainingDistance))
                                 }
                                 withStyle(
-                                    style = SpanStyle(fontSize = 22.sp) // Set the font size for "KM"
+                                    style = SpanStyle(fontSize = 22.sp)
                                 ) {
                                     append("KM")
                                 }
@@ -311,10 +298,75 @@ fun DashboardTestScreen(
         }
     }
 
-    TripDialog(openAlertDialog)
+    TripDialog(openAlertDialog, networkStatus)
+    NetworkSnackBar(snackBarHostState, "Scooter data unavailable")
     if((!isLocationEnabled || !locationPermissionState.status.isGranted) && isStopWatchActive) {
         stop()
         requestLocationPermissions(isLocationEnabled, requestForLocation, locationPermissionState)
+    }
+}
+
+fun showSnackBar(coroutineScope: CoroutineScope, snackBarHostState: SnackbarHostState) {
+    coroutineScope.launch {
+        snackBarHostState.showSnackbar(
+            message = "Network is not available.",
+            duration = SnackbarDuration.Short
+        )
+    }
+}
+
+@Composable
+fun ShowProgress(score: Float) {
+    val gradient = Brush.linearGradient(listOf(Color(0xFF313633), Color(0xFF8BC34A)))
+
+    val animatedProgress = remember { Animatable(0f) }
+
+    LaunchedEffect(score) {
+        animatedProgress.animateTo(score * 0.01f, animationSpec = tween(durationMillis = 2000))
+    }
+
+    Row(
+        modifier = Modifier
+            .padding(50.dp, 0.dp, 50.dp, 0.dp)
+            .fillMaxWidth()
+            .height(25.dp)
+            .border(
+                width = 4.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        LightColor,
+                        LightColor
+                    )
+                ),
+                shape = RoundedCornerShape(50.dp)
+            )
+            .clip(
+                RoundedCornerShape(
+                    topStartPercent = 50,
+                    topEndPercent = 50,
+                    bottomEndPercent = 50,
+                    bottomStartPercent = 50
+                )
+            )
+            .background(DarkColor2),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (score > 0f) {
+            Button(
+                contentPadding = PaddingValues(20.dp),
+                onClick = { },
+                modifier = Modifier
+                    .fillMaxWidth(animatedProgress.value)
+                    .background(brush = gradient),
+                enabled = false,
+                elevation = null,
+                colors = buttonColors(
+                    containerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent
+                )
+            ) {
+            }
+        }
     }
 }
 
@@ -363,9 +415,10 @@ fun requestBluetoothPermissions(isBluetoothEnabled: Boolean, requestForBluetooth
 @ContentNavGraph
 @Destination
 @Composable
-fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
-                        dashboardViewModel : DashboardViewModel = hiltViewModel(),
-                        navigator: DestinationsNavigator) {
+fun DashboardTestScreen(
+    permissionsVM : PermissionsViewModel = hiltViewModel(),
+    dashboardViewModel : DashboardViewModel = hiltViewModel()
+) {
 
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
     val bluetoothPermissionsState = rememberMultiplePermissionsState(permissions = BluetoothPermissions.permissions)
@@ -388,18 +441,18 @@ fun DashboardTestScreen(permissionsVM : PermissionsViewModel = hiltViewModel(),
         initializeBLE = dashboardViewModel::initializeBLEConnection,
         disconnectBLE = dashboardViewModel::disconnectBLE,
         bleConnectionState = dashboardViewModel.bleConnectionState,
-        batteryVoltage = dashboardViewModel.batteryVoltage,
-        deviceBatteryVoltage = dashboardViewModel.whEnergyConsumed,
+        remainingDistance = dashboardViewModel.remainingDistance,
         batteryPercentage = dashboardViewModel.batteryPercentage,
         distanceTime = dashboardViewModel.stopWatch.formattedTime,
         isStopWatchActive = dashboardViewModel.stopWatch.isActive,
-        locationObserverState = dashboardViewModel.locationObserverState
+        locationObserverState = dashboardViewModel.locationObserverState,
+        efficiencyFactor = dashboardViewModel.efficiencyFactor,
+        networkStatus =  dashboardViewModel.connectivityObserver.observe().collectAsState(
+            initial = ConnectivityObserver.Status.Unavailable
+        ).value,
+        scooterData = dashboardViewModel.scooterData
     )
 }
-
-
-
-
 
 
 
@@ -454,12 +507,14 @@ fun DashboardTestScreenPreview() {
                 initializeBLE = {},
                 disconnectBLE = {},
                 bleConnectionState = ConnectionState.CurrentlyInitializing,
-                batteryVoltage = 0f,
-                deviceBatteryVoltage = 0f,
+                remainingDistance = 0f,
                 batteryPercentage = 0f,
                 distanceTime = "00:00:00",
                 isStopWatchActive = false,
-                locationObserverState = LocationLiveData.LocationState.InActive
+                locationObserverState = LocationLiveData.LocationState.InActive,
+                efficiencyFactor = 0f,
+                networkStatus = ConnectivityObserver.Status.Available,
+                scooterData = Scooter()
             )
         }
     }

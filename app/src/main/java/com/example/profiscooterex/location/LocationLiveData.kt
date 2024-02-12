@@ -6,9 +6,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Looper
-import android.util.Log
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.app.ActivityCompat
@@ -23,8 +21,8 @@ import com.google.android.gms.location.Priority
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.math.roundToInt
-import kotlin.math.roundToLong
 
+@Suppress("NAME_SHADOWING")
 class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveData<LocationDetails>() {
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     private var lastFetchedLocation : Location? = null
@@ -44,7 +42,7 @@ class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveDat
         startLocationUpdates()
     }
 
-    internal fun startLocationUpdates() {
+    private fun startLocationUpdates() {
         locationPermissionCheck()
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
         locationObserverState = LocationState.Fetching
@@ -111,7 +109,6 @@ class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveDat
             locationResult ?: return
 
             if (omitFirstLocationRequest) {
-                Log.d("tag", "previousLoc null")
                 omitFirstLocationRequest = false
             } else {
                 if (lastFetchedLocation == null) {
@@ -138,13 +135,6 @@ class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveDat
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return
         }
     }

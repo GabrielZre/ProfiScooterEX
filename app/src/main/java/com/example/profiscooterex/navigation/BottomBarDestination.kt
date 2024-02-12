@@ -10,7 +10,6 @@ import com.example.profiscooterex.R
 import com.example.profiscooterex.ui.destinations.DashboardTestScreenDestination
 import com.example.profiscooterex.ui.destinations.HomeScreenDestination
 import com.example.profiscooterex.ui.destinations.MapScreenDestination
-import com.example.profiscooterex.ui.destinations.ScooterSettingsScreenDestination
 import com.ramcosta.composedestinations.spec.DirectionDestinationSpec
 
 enum class BottomBarDestination(
@@ -20,5 +19,5 @@ enum class BottomBarDestination(
 ) {
     Home(HomeScreenDestination, Icons.Default.Home, R.string.home),
     Dashboard(DashboardTestScreenDestination, Icons.Default.Speed, R.string.dashboard),
-    Map(MapScreenDestination, Icons.Default.MyLocation, R.string.dashboard),
+    Map(MapScreenDestination, Icons.Default.MyLocation, R.string.location),
 }

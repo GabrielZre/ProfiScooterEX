@@ -3,7 +3,6 @@ package com.example.profiscooterex.ui.dashboard
 import android.annotation.SuppressLint
 import android.app.Application
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -21,6 +20,8 @@ import com.example.profiscooterex.location.LocationLiveData
 import com.example.profiscooterex.ui.dashboard.components.stopWatch.StopWatch
 import com.example.profiscooterex.data.DataViewModel
 import com.example.profiscooterex.data.userDB.Scooter
+import com.example.profiscooterex.permissions.network.ConnectivityObserver
+import com.example.profiscooterex.permissions.network.NetworkConnectivityObserver
 import com.example.profiscooterex.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -38,19 +39,18 @@ class DashboardViewModel
     private val batteryVoltageReceiveManager: BatteryVoltageReceiveManager
 ) : AndroidViewModel(application) {
 
-    var bleInitializingMessage by mutableStateOf<String?>(null)
+    private var bleInitializingMessage by mutableStateOf<String?>(null)
+    private var bleErrorMessage by mutableStateOf<String?>(null)
+    private var batteryVoltage by mutableFloatStateOf(0f)
+    private var whEnergyConsumed by mutableFloatStateOf(0f)
+    var remainingDistance by mutableFloatStateOf(0f)
         private set
-    var bleErrorMessage by mutableStateOf<String?>(null)
+    var efficiencyFactor  by mutableFloatStateOf(0f)
         private set
-    var batteryVoltage by mutableStateOf(0f)
-        private set
-    var whEnergyConsumed by mutableStateOf(0f)
-        private set
-
     val scooterData: Scooter
         get() = dataViewModel.scooterDataState.value
 
-    var batteryPercentage by mutableStateOf(0f)
+    var batteryPercentage by mutableFloatStateOf(0f)
 
     var bleConnectionState by mutableStateOf<ConnectionState>(ConnectionState.Uninitialized)
 
@@ -61,9 +61,11 @@ class DashboardViewModel
     var averageSpeed by mutableFloatStateOf(0f)
 
     @RequiresApi(Build.VERSION_CODES.O)
-    val formatter = DateTimeFormatter.ofPattern("yyy-MM-dd HH:mm")
+    val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyy-MM-dd HH:mm:ss")
 
     var stopWatch = StopWatch()
+
+    var connectivityObserver: ConnectivityObserver = NetworkConnectivityObserver(application.applicationContext)
 
     private val locationLiveData = LocationLiveData(application, stopWatch)
 
@@ -90,6 +92,15 @@ class DashboardViewModel
                             batteryVoltage = result.data.batteryVoltage
                             whEnergyConsumed = result.data.whEnergyConsumed
                             batteryPercentage = calculateBatteryPercent(result.data.whEnergyConsumed)
+                            if(distanceTrip >= 0.1) {
+                                remainingDistance = calculateRemainingDistance(whEnergyConsumed, distanceTrip)
+                                efficiencyFactor = calculateEfficiencyFactor(calculateMaxDistance(), calculateTheoreticalRange())
+                            }
+                        }
+                        if(bleConnectionState == ConnectionState.Disconnected) {
+                            batteryPercentage = 0f
+                            remainingDistance = 0f
+                            efficiencyFactor = 0f
                         }
                     }
 
@@ -104,6 +115,7 @@ class DashboardViewModel
                     }
                 }
             }
+
         }
     }
 
@@ -111,12 +123,16 @@ class DashboardViewModel
         startBatteryVoltage = null
         bleErrorMessage = null
         batteryPercentage = 0f
+        efficiencyFactor = 0f
         bleConnectionState = ConnectionState.Uninitialized
         batteryVoltageReceiveManager.disconnect()
         batteryVoltageReceiveManager.closeConnection()
     }
 
     fun initializeBLEConnection() {
+        if(locationLiveData.locationObserverState != LocationLiveData.LocationState.InActive) {
+            restart()
+        }
         bleErrorMessage = null
         subscribeToChanges()
         batteryVoltageReceiveManager.startReceiving()
@@ -148,7 +164,7 @@ class DashboardViewModel
     }
 
     fun calculateBatteryDrain(): Float {
-        val batteryDrain = startBatteryVoltage?.minus(batteryVoltage) ?: 0f
+        val batteryDrain = calculateStartBatteryPercent().minus(batteryPercentage)
         return if (batteryDrain < 0f) 0f else batteryDrain
     }
 
@@ -162,21 +178,41 @@ class DashboardViewModel
     }
 
     private fun calculateStartBatteryPercent(): Float {
-        val batteryPercent = ((startBatteryVoltage!! - scooterData.bottomCutOff.toFloat()) * 100) / (scooterData.upperCutOff.toFloat() - scooterData.bottomCutOff.toFloat())
-        return batteryPercent.coerceIn(0f, 100f)
+        return if(startBatteryVoltage != null) {
+            val batteryPercent = ((startBatteryVoltage!! - scooterData.bottomCutOff.toFloat()) * 100) / (scooterData.upperCutOff.toFloat() - scooterData.bottomCutOff.toFloat())
+            batteryPercent.coerceIn(0f, 100f)
+        } else {
+            0f
+        }
     }
     private fun calculateOriginalWhCapacity(): Float {
         return (scooterData.batteryAh.toFloat() * scooterData.batteryVoltage.toFloat())
     }
 
-    fun calculateRemainingDistance(): Float {
-        return ((((scooterData.batteryAh.toFloat() * scooterData.batteryVoltage.toFloat()) / scooterData.motorWatt.toFloat()) * 25 ) * batteryPercentage) / 100 // default average 30 km/h
+    private fun calculateRemainingDistance(whEnergyConsumed: Float, distanceTravelled: Float): Float {
+        return calculateWhLeft(whEnergyConsumed) / whEnergyConsumed * distanceTravelled
     }
 
-    //fun calculateAverageMaxDistance(): Float {
-    //    return ((scooterData.batteryAh * batteryVoltage) / scooterData.motorWatt) * 25;
-    //}
+    private fun calculateTheoreticalRange(): Float {
+        val energyCapacityWh = scooterData.batteryAh.toFloat() * scooterData.batteryVoltage.toFloat()
 
+        val rangeKm = (energyCapacityWh) / (scooterData.motorWatt.toFloat() / 25)
+        return rangeKm
+    }
+    private fun calculateMaxDistance(): Float {
+        val constantBatteryWh = scooterData.batteryAh.toFloat() * scooterData.batteryVoltage.toFloat()
+
+        return (constantBatteryWh) / whEnergyConsumed * distanceTrip
+    }
+
+    private fun calculateEfficiencyFactor(consumptionBasedMaxRange: Float, theoreticalMaxRange: Float ): Float {
+        val efficiencyFactor = if (consumptionBasedMaxRange <= theoreticalMaxRange) {
+            (consumptionBasedMaxRange / theoreticalMaxRange) * 100
+        } else {
+            100f
+        }
+        return efficiencyFactor.coerceIn(0f, 100f)
+    }
     @RequiresApi(Build.VERSION_CODES.O)
     fun saveTrip(tripName: String) {
         dataViewModel.sendTripData(

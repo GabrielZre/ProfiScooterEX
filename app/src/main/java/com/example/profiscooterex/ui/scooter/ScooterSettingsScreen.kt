@@ -1,7 +1,7 @@
 package com.example.profiscooterex.ui.scooter
 
+import android.annotation.SuppressLint
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Battery0Bar
@@ -22,17 +23,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Devices
@@ -41,16 +44,19 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.profiscooterex.data.userDB.Scooter
 import com.example.profiscooterex.navigation.ContentNavGraph
+import com.example.profiscooterex.permissions.network.ConnectivityObserver
+import com.example.profiscooterex.ui.scooter.components.NetworkSnackBar
 import com.example.profiscooterex.ui.scooter.components.Picker
 import com.example.profiscooterex.ui.scooter.components.rememberPickerState
 import com.example.profiscooterex.ui.theme.AppTheme
+import com.example.profiscooterex.ui.theme.DarkColor
 import com.example.profiscooterex.ui.theme.DarkGradient
 import com.example.profiscooterex.ui.theme.LightColor
 import com.example.profiscooterex.ui.theme.LightColor2
 import com.example.profiscooterex.ui.theme.spacing
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import kotlin.reflect.KFunction1
+import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -62,8 +68,11 @@ fun ScooterSettingsScreen(
     upperCutOff: String,
     calculateStartIndex: (String, String, String, Int) -> Int,
     saveScooterSettings: (Scooter) -> Unit,
-    backToHomeScreen: () -> Unit
+    backToHomeScreen: () -> Unit,
+    networkStatus: ConnectivityObserver.Status
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val snackBarHostState = remember { SnackbarHostState() }
 
     val spacing = MaterialTheme.spacing
 
@@ -87,8 +96,6 @@ fun ScooterSettingsScreen(
     var upperCutOffValue by remember { mutableStateOf(upperCutOff) }
     upperCutOffValue = upperCutOff
 
-    Log.d("tag", batteryAh)
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -110,15 +117,21 @@ fun ScooterSettingsScreen(
                     verticalArrangement = Arrangement.Center,
                 ) {
 
-                    Row(){
+                    Row {
                         OutlinedTextField(
                             value = bottomCutOffValue,
                             onValueChange = { bottomCutOffValue = it },
-                            placeholder = { Text(text = "Min Voltage") },
+                            placeholder = {
+                                Text(
+                                    text = "Min Voltage",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            },
                             keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number),
+                                keyboardType = KeyboardType.Number
+                            ),
                             modifier = Modifier.weight(0.5f),
-                            shape = RoundedCornerShape( 20.dp, 0.dp, 0.dp, 20.dp),
+                            shape = RoundedCornerShape(20.dp, 0.dp, 0.dp, 20.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 unfocusedContainerColor = LightColor,
                                 focusedContainerColor = LightColor2,
@@ -138,11 +151,17 @@ fun ScooterSettingsScreen(
                         OutlinedTextField(
                             value = upperCutOffValue,
                             onValueChange = { upperCutOffValue = it },
-                            placeholder = { Text(text = "Max Voltage") },
+                            placeholder = {
+                                Text(
+                                    text = "Max Voltage",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            },
                             keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number),
+                                keyboardType = KeyboardType.Number
+                            ),
                             modifier = Modifier.weight(0.5f),
-                            shape = RoundedCornerShape( 0.dp, 20.dp, 20.dp, 0.dp),
+                            shape = RoundedCornerShape(0.dp, 20.dp, 20.dp, 0.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 unfocusedContainerColor = LightColor,
                                 focusedContainerColor = LightColor2,
@@ -165,7 +184,7 @@ fun ScooterSettingsScreen(
 
                     Spacer(modifier = Modifier.height(50.dp))
 
-                    Row() {
+                    Row {
 
                         Icon(
                             modifier = Modifier
@@ -175,7 +194,7 @@ fun ScooterSettingsScreen(
                             contentDescription = "Battery Ah",
                             tint = Color.LightGray
                         )
-                        
+
                         Icon(
                             modifier = Modifier
                                 .weight(0.33f),
@@ -198,88 +217,107 @@ fun ScooterSettingsScreen(
                         color = LightColor,
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                     ) {
-                        Row() {
-                                Picker(
-                                    state = batteryAhPickerState,
-                                    items = batteryAhValues,
-                                    visibleItemsCount = 3,
-                                    modifier = Modifier.weight(0.3f),
-                                    textModifier = Modifier.padding(8.dp),
-                                    textStyle = TextStyle(
-                                        fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                                        color = MaterialTheme.colorScheme.onPrimary
-                                    ),
-                                    textMetric = "Ah",
-                                    startIndex = calculateStartIndex(batteryAh, batteryAhValues.first(), batteryAhValues.last(), 1)
+                        Row {
+                            Picker(
+                                state = batteryAhPickerState,
+                                items = batteryAhValues,
+                                visibleItemsCount = 3,
+                                modifier = Modifier.weight(0.3f),
+                                textModifier = Modifier.padding(8.dp),
+                                textStyle = TextStyle(
+                                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                textMetric = "Ah",
+                                startIndex = calculateStartIndex(
+                                    batteryAh,
+                                    batteryAhValues.first(),
+                                    batteryAhValues.last(),
+                                    1
                                 )
+                            )
 
-                                Picker(
-                                    state = batteryVoltagePickerState,
-                                    items = batteryVoltageValues,
-                                    visibleItemsCount = 3,
-                                    modifier = Modifier.weight(0.3f),
-                                    textModifier = Modifier.padding(8.dp),
-                                    textStyle = TextStyle(
-                                        fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                                        color = MaterialTheme.colorScheme.onPrimary
-                                    ),
-                                    textMetric = "V",
-                                    startIndex = calculateStartIndex(batteryVoltage, batteryVoltageValues.first(), batteryVoltageValues.last(), 1)
+                            Picker(
+                                state = batteryVoltagePickerState,
+                                items = batteryVoltageValues,
+                                visibleItemsCount = 3,
+                                modifier = Modifier.weight(0.3f),
+                                textModifier = Modifier.padding(8.dp),
+                                textStyle = TextStyle(
+                                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                textMetric = "V",
+                                startIndex = calculateStartIndex(
+                                    batteryVoltage,
+                                    batteryVoltageValues.first(),
+                                    batteryVoltageValues.last(),
+                                    1
                                 )
-                                Picker(
-                                    state = motorWattPickerState,
-                                    items = motorWattValues,
-                                    visibleItemsCount = 3,
-                                    modifier = Modifier.weight(0.3f),
-                                    textModifier = Modifier.padding(8.dp),
-                                    textStyle = TextStyle(
-                                        fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                                        color = MaterialTheme.colorScheme.onPrimary
-                                    ),
-                                    textMetric = "W",
-                                    startIndex = calculateStartIndex(motorWatt, motorWattValues.first(), motorWattValues.last(), 50)
+                            )
+                            Picker(
+                                state = motorWattPickerState,
+                                items = motorWattValues,
+                                visibleItemsCount = 3,
+                                modifier = Modifier.weight(0.3f),
+                                textModifier = Modifier.padding(8.dp),
+                                textStyle = TextStyle(
+                                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                textMetric = "W",
+                                startIndex = calculateStartIndex(
+                                    motorWatt,
+                                    motorWattValues.first(),
+                                    motorWattValues.last(),
+                                    50
                                 )
-                            }
+                            )
                         }
-
-                    Text(
-                        text = "Values: ${batteryAhPickerState.selectedItem}, ${batteryVoltagePickerState.selectedItem}, ${motorWattPickerState.selectedItem}",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.padding(vertical = 16.dp)
-                    )
-                    Log.d("tag", batteryAh)
-
+                    }
                 }
             }
-
+            Spacer(modifier = Modifier.height(20.dp))
             OutlinedButton(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally),
-                onClick = { saveScooterSettings(
-                    Scooter(
-                        batteryAh = batteryAhPickerState.selectedItem,
-                        batteryVoltage = batteryVoltagePickerState.selectedItem,
-                        bottomCutOff = bottomCutOffValue,
-                        motorWatt = motorWattPickerState.selectedItem,
-                        upperCutOff = upperCutOffValue
-                    )
-                )
-                          backToHomeScreen()},
-                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onSecondaryContainer)
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                onClick = {
+                    if (networkStatus == ConnectivityObserver.Status.Available) {
+                        saveScooterSettings(
+                            Scooter(
+                                batteryAh = batteryAhPickerState.selectedItem,
+                                batteryVoltage = batteryVoltagePickerState.selectedItem,
+                                bottomCutOff = bottomCutOffValue,
+                                motorWatt = motorWattPickerState.selectedItem,
+                                upperCutOff = upperCutOffValue
+                            )
+                        )
+                        backToHomeScreen()
+                    } else {
+                        coroutineScope.launch {
+                            snackBarHostState.showSnackbar(
+                                message = "Network is not available.",
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = DarkColor, contentColor = Color.White)
             ) {
                 Icon(
                     imageVector = Icons.Default.Save,
                     contentDescription = "Save",
-                    tint = LightGray)
+                    tint = Color.LightGray
+                )
             }
         }
-
+        NetworkSnackBar(snackBarHostState, "Network is not available")
     }
 }
 
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter", "UnusedMaterial3ScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
-@ContentNavGraph()
+@ContentNavGraph
 @Destination
 @Composable
 fun ScooterSettingsScreen(scooterSettingsViewModel : ScooterSettingsViewModel = hiltViewModel(), navigator: DestinationsNavigator) {
@@ -291,8 +329,12 @@ fun ScooterSettingsScreen(scooterSettingsViewModel : ScooterSettingsViewModel = 
         upperCutOff = scooterSettingsViewModel.scooterData.upperCutOff,
         calculateStartIndex = scooterSettingsViewModel::calculateStartIndex,
         saveScooterSettings = scooterSettingsViewModel::saveScooterSettings,
-        backToHomeScreen = navigator::popBackStack
+        backToHomeScreen = navigator::popBackStack,
+        networkStatus =  scooterSettingsViewModel.connectivityObserver.observe().collectAsState(
+            initial = ConnectivityObserver.Status.Unavailable
+        ).value
     )
+
 }
 
 
@@ -309,10 +351,10 @@ fun ScooterSettingsScreenPreview() {
                 motorWatt = "1000",
                 upperCutOff = "54.6",
                 calculateStartIndex = { _, _, _, _ -> 1 },
-                saveScooterSettings = { _ -> {} },
-                backToHomeScreen = {}
+                saveScooterSettings = {},
+                backToHomeScreen = {},
+                networkStatus = ConnectivityObserver.Status.Available
             )
         }
     }
 }
-

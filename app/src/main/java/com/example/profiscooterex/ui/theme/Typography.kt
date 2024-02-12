@@ -21,7 +21,6 @@ private val Poppins = FontFamily(
     Font(R.font.poppins_black)
 )
 
-@Suppress("DEPRECATION")
 val defaultTextStyle = TextStyle(
     fontFamily = Poppins,
     platformStyle = PlatformTextStyle(

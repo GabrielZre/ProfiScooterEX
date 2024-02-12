@@ -12,4 +12,5 @@
     <string name="logout">logout</string>
     <string name="home">Home</string>
     <string name="dashboard">Dashboard</string>
+    <string name="location">Location</string>
 </resources>

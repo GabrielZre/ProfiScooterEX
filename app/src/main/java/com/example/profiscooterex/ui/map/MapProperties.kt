@@ -1,22 +1,21 @@
 package com.example.profiscooterex.ui.map
 
+import com.utsman.osmandcompose.MapProperties
 import com.utsman.osmandcompose.ZoomButtonVisibility
-import org.osmdroid.tileprovider.tilesource.ITileSource
-import org.osmdroid.views.overlay.OverlayManager
 
-data class MapProperties(
-    val mapOrientation: Float = 0f,
-    val isMultiTouchControls: Boolean = true,
-    val isAnimating: Boolean = true,
-    val minZoomLevel: Double = 6.0,
-    val maxZoomLevel: Double = 29.0,
-    val isFlingEnable: Boolean = true,
-    val isEnableRotationGesture: Boolean = false,
-    val isUseDataConnection: Boolean = true,
-    val isTilesScaledToDpi: Boolean = false,
-    val tileSources: ITileSource? = null,
-    val overlayManager: OverlayManager? = null,
-    val zoomButtonVisibility: ZoomButtonVisibility = ZoomButtonVisibility.ALWAYS
+val mapProperties = MapProperties(
+    mapOrientation = 0f,
+     isMultiTouchControls = true,
+     isAnimating = true,
+     minZoomLevel = 6.0,
+     maxZoomLevel = 21.0,
+     isFlingEnable = true,
+     isEnableRotationGesture = false,
+     isUseDataConnection = true,
+     isTilesScaledToDpi = false,
+     tileSources = null,
+     overlayManager = null,
+     zoomButtonVisibility = ZoomButtonVisibility.ALWAYS
 )
 
-val DefaultMapProperties = MapProperties()
+val DefaultMapProperties = mapProperties

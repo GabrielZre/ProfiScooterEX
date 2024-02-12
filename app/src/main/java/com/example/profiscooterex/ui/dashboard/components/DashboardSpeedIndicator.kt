@@ -1,33 +1,28 @@
 package com.example.profiscooterex.ui.dashboard.components
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.keyframes
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
-import androidx.compose.foundation.indication
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddRoad
 import androidx.compose.material.icons.filled.LocationOn
@@ -53,7 +48,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -83,9 +77,6 @@ fun Animatable<Float, AnimationVector1D>.toUiState(averageSpeed: Float, distance
         DashboardState.Ready -> Color.White
         DashboardState.Stopped -> Color.Yellow
         DashboardState.Disabled -> Color.Red
-        else -> {
-            Color.Red
-        }
     }
 )
 
@@ -109,7 +100,7 @@ fun DashboardSpeedIndicator(
     DashboardSpeedIndicator(animation.toUiState(averageSpeed, distanceTrip, dashboardState), onClickDashboard, onLongClickDashboard)
 
     LaunchedEffect(initAnimation.value) {
-        if (!initAnimation.value) {
+        if (!initAnimation.value && (dashboardState == DashboardState.Disabled || dashboardState == DashboardState.Ready)){
             launchAnimation(coroutineScope, animation) {
                 initAnimation.value = true
             }
@@ -205,7 +196,7 @@ fun SpeedValue(value: String, averageSpeed: String, distanceTrip: String, dashbo
         Text(
             "Kmh",
             color = Color.White,
-            style = MaterialTheme.typography.caption
+            style = MaterialTheme.typography.bodySmall
         )
         Spacer(modifier = Modifier.height(30.dp))
         Row {
@@ -344,7 +335,7 @@ fun Modifier.bounceClick() = composed {
 @Composable
 fun DashboardSpeedIndicatorPreview() {
     AppTheme {
-        Surface() {
+        Surface {
             DashboardSpeedIndicator(
                 UiState(
                     speed = "120.5",

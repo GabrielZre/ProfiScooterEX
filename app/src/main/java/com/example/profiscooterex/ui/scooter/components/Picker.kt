@@ -1,8 +1,6 @@
 package com.example.profiscooterex.ui.scooter.components
 
-import android.util.Log
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Box
@@ -19,7 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -46,7 +44,7 @@ import kotlinx.coroutines.flow.map
 fun Picker(
     items: List<String>,
     state: PickerState = rememberPickerState(),
-    modifier: Modifier = Modifier,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
     startIndex: Int,
     visibleItemsCount: Int = 3,
     textModifier: Modifier = Modifier,
@@ -65,11 +63,11 @@ fun Picker(
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = listStartIndex)
     val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
 
-    val itemHeightPixels = remember { mutableStateOf(0) }
-    val itemWidthPixels = remember { mutableStateOf(0) }
+    val itemHeightPixels = remember { mutableIntStateOf(0) }
+    val itemWidthPixels = remember { mutableIntStateOf(0) }
 
-    val itemHeightDp = pixelsToDp(itemHeightPixels.value)
-    val itemWidthDp = pixelsToDp(itemWidthPixels.value)
+    val itemHeightDp = pixelsToDp(itemHeightPixels.intValue)
+    val itemWidthDp = pixelsToDp(itemWidthPixels.intValue)
 
     val fadingEdgeGradient = remember {
         Brush.verticalGradient(
@@ -91,8 +89,8 @@ fun Picker(
         listState.scrollToItem(startIndex)
     }
 
-    Box(modifier = modifier, ) {
-    Row() {
+    Box(modifier = modifier) {
+    Row {
         LazyColumn(
             state = listState,
             flingBehavior = flingBehavior,
@@ -116,8 +114,8 @@ fun Picker(
                     style = currentTextStyle,
                     modifier = Modifier
                         .onSizeChanged { size ->
-                            if (itemHeightPixels.value == 0) itemHeightPixels.value = size.height
-                            if (itemWidthPixels.value == 0) itemWidthPixels.value = size.width
+                            if (itemHeightPixels.intValue == 0) itemHeightPixels.intValue = size.height
+                            if (itemWidthPixels.intValue == 0) itemWidthPixels.intValue = size.width
                         }
                         .offset(x = 4.dp)
                         .then(textModifier)
@@ -153,8 +151,6 @@ fun Picker(
         )
 
     }
-    Log.d("tag", " ISIDE${state.selectedItem}")
-
 }
 
 private fun Modifier.fadingEdge(brush: Brush) = this
