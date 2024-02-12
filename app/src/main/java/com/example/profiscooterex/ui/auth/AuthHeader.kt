@@ -26,21 +26,17 @@ fun AuthHeader() {
         val spacing = MaterialTheme.spacing
 
         Image(
-            modifier = Modifier
-                .size(128.dp, 128.dp),
-            painter = painterResource(id = R.drawable.ic_app_logo),
+            modifier = Modifier.size(128.dp, 128.dp),
+            painter = painterResource(id = R.drawable.profiscooter_logo),
             contentDescription = stringResource(id = R.string.app_name)
         )
 
         Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(top = spacing.medium),
+            modifier = Modifier.fillMaxWidth().wrapContentHeight().padding(top = spacing.medium),
             text = stringResource(id = R.string.app_name),
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onPrimary
         )
     }
 }
@@ -48,15 +44,11 @@ fun AuthHeader() {
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 fun AppHeaderLight() {
-    AppTheme {
-        AuthHeader()
-    }
+    AppTheme { AuthHeader() }
 }
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun AppHeaderDark() {
-    AppTheme {
-        AuthHeader()
-    }
+    AppTheme { AuthHeader() }
 }
