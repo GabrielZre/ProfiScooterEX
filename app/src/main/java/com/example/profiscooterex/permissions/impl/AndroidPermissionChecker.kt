@@ -12,6 +12,6 @@ class AndroidPermissionChecker @Inject constructor(@ApplicationContext val conte
 
     override fun hasPermission(permissionName: String): Boolean {
         return ContextCompat.checkSelfPermission(context, permissionName) ==
-                PackageManager.PERMISSION_GRANTED
+            PackageManager.PERMISSION_GRANTED
     }
 }

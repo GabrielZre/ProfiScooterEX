@@ -11,25 +11,27 @@ import com.example.profiscooterex.permissions.location.LocationChecker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-class AndroidLocationChecker @Inject constructor(@ApplicationContext val context : Context) :
+class AndroidLocationChecker @Inject constructor(@ApplicationContext val context: Context) :
     LocationChecker {
 
-        override val locationState = mutableStateOf(
+    override val locationState =
+        mutableStateOf(
             LocationManagerCompat.isLocationEnabled(
                 context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
             )
         )
 
     private val locationIntentFilter = IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION)
-    private val locationReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == LocationManager.PROVIDERS_CHANGED_ACTION) {
-                val locationManager = context?.getSystemService(Context.LOCATION_SERVICE) as
-                        LocationManager
-                locationState.value = LocationManagerCompat.isLocationEnabled(locationManager)
+    private val locationReceiver =
+        object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == LocationManager.PROVIDERS_CHANGED_ACTION) {
+                    val locationManager =
+                        context?.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                    locationState.value = LocationManagerCompat.isLocationEnabled(locationManager)
+                }
             }
         }
-    }
 
     init {
         context.registerReceiver(locationReceiver, locationIntentFilter)

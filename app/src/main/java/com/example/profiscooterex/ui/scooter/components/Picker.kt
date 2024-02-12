@@ -56,7 +56,8 @@ fun Picker(
     val visibleItemsMiddle = visibleItemsCount / 2
     val listScrollCount = Integer.MAX_VALUE
     val listScrollMiddle = listScrollCount / 2
-    val listStartIndex = listScrollMiddle - listScrollMiddle % items.size - visibleItemsMiddle + startIndex
+    val listStartIndex =
+        listScrollMiddle - listScrollMiddle % items.size - visibleItemsMiddle + startIndex
 
     fun getItem(index: Int) = items[index % items.size]
 
@@ -77,88 +78,81 @@ fun Picker(
         )
     }
 
-
-
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
             .map { index -> getItem(index + visibleItemsMiddle) }
             .distinctUntilChanged()
             .collect { item -> state.selectedItem = item }
     }
-    LaunchedEffect(startIndex) {
-        listState.scrollToItem(startIndex)
-    }
+    LaunchedEffect(startIndex) { listState.scrollToItem(startIndex) }
 
     Box(modifier = modifier) {
-    Row {
-        LazyColumn(
-            state = listState,
-            flingBehavior = flingBehavior,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .height(itemHeightDp * visibleItemsCount)
-                .fadingEdge(fadingEdgeGradient)
-        ) {
-            items(listScrollCount) { index ->
-                val currentTextStyle = if (index != listState.firstVisibleItemIndex + visibleItemsMiddle) {
-                    textStyle.copy(fontSize = 12.sp)
-                } else {
-                    textStyle
-                }
-                Text(
-                    text = getItem(index),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = currentTextStyle,
-                    modifier = Modifier
-                        .onSizeChanged { size ->
-                            if (itemHeightPixels.intValue == 0) itemHeightPixels.intValue = size.height
-                            if (itemWidthPixels.intValue == 0) itemWidthPixels.intValue = size.width
+        Row {
+            LazyColumn(
+                state = listState,
+                flingBehavior = flingBehavior,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier =
+                    Modifier.weight(1f)
+                        .fillMaxWidth()
+                        .height(itemHeightDp * visibleItemsCount)
+                        .fadingEdge(fadingEdgeGradient)
+            ) {
+                items(listScrollCount) { index ->
+                    val currentTextStyle =
+                        if (index != listState.firstVisibleItemIndex + visibleItemsMiddle) {
+                            textStyle.copy(fontSize = 12.sp)
+                        } else {
+                            textStyle
                         }
-                        .offset(x = 4.dp)
-                        .then(textModifier)
-                )
+                    Text(
+                        text = getItem(index),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = currentTextStyle,
+                        modifier =
+                            Modifier.onSizeChanged { size ->
+                                    if (itemHeightPixels.intValue == 0)
+                                        itemHeightPixels.intValue = size.height
+                                    if (itemWidthPixels.intValue == 0)
+                                        itemWidthPixels.intValue = size.width
+                                }
+                                .offset(x = 4.dp)
+                                .then(textModifier)
+                    )
+                }
             }
+
+            Text(
+                text = textMetric,
+                style = textStyle.copy(fontSize = MaterialTheme.typography.bodySmall.fontSize),
+                modifier =
+                    Modifier.align(Alignment.CenterVertically).offset(x = itemWidthDp - 65.dp),
+                textAlign = TextAlign.Start
+            )
         }
 
-
-        Text(
-            text = textMetric,
-            style = textStyle.copy(fontSize = MaterialTheme.typography.bodySmall.fontSize),
-            modifier = Modifier.align(Alignment.CenterVertically).offset(x = itemWidthDp - 65.dp),
-            textAlign = TextAlign.Start
-        )
-    }
-
-
-
         HorizontalDivider(
-            modifier = Modifier
-                .offset(y = itemHeightDp * visibleItemsMiddle)
-                .height(IntrinsicSize.Min),
+            modifier =
+                Modifier.offset(y = itemHeightDp * visibleItemsMiddle).height(IntrinsicSize.Min),
             color = dividerColor,
             thickness = 2.dp
         )
 
         HorizontalDivider(
-            modifier = Modifier
-                .offset(y = itemHeightDp * (visibleItemsMiddle + 1))
-                .height(IntrinsicSize.Min),
+            modifier =
+                Modifier.offset(y = itemHeightDp * (visibleItemsMiddle + 1))
+                    .height(IntrinsicSize.Min),
             color = dividerColor,
             thickness = 2.dp
         )
-
     }
 }
 
-private fun Modifier.fadingEdge(brush: Brush) = this
-    .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-    .drawWithContent {
+private fun Modifier.fadingEdge(brush: Brush) =
+    this.graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen).drawWithContent {
         drawContent()
         drawRect(brush = brush, blendMode = BlendMode.DstIn)
     }
 
-@Composable
-private fun pixelsToDp(pixels: Int) = with(LocalDensity.current) { pixels.toDp() }
+@Composable private fun pixelsToDp(pixels: Int) = with(LocalDensity.current) { pixels.toDp() }

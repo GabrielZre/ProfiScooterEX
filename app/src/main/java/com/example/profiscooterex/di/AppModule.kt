@@ -6,10 +6,10 @@ import android.content.Context
 import android.location.LocationManager
 import com.example.profiscooterex.data.AuthRepository
 import com.example.profiscooterex.data.AuthRepositoryImpl
+import com.example.profiscooterex.data.DataViewModel
 import com.example.profiscooterex.data.ble.BatteryVoltageReceiveManager
 import com.example.profiscooterex.data.ble.service.BatteryVoltageBLEReceiveManager
 import com.example.profiscooterex.permissions.service.RequestServiceListener
-import com.example.profiscooterex.data.DataViewModel
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
@@ -22,11 +22,9 @@ import javax.inject.Singleton
 @Module
 class AppModule {
 
-    @Provides
-    fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
+    @Provides fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
 
-    @Provides
-    fun provideAuthRepository(impl: AuthRepositoryImpl): AuthRepository = impl
+    @Provides fun provideAuthRepository(impl: AuthRepositoryImpl): AuthRepository = impl
 
     @Provides
     fun provideDataViewModel(): DataViewModel {
@@ -42,7 +40,8 @@ class AppModule {
     @Provides
     @Singleton
     fun provideBluetoothAdapter(@ApplicationContext context: Context): BluetoothAdapter {
-        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val bluetoothManager =
+            context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         return bluetoothManager.adapter
     }
 

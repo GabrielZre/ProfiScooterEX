@@ -10,7 +10,7 @@ import com.example.profiscooterex.permissions.bluetooth.BluetoothStateBroadcastR
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-class AndroidBluetoothChecker @Inject constructor(@ApplicationContext val context : Context) :
+class AndroidBluetoothChecker @Inject constructor(@ApplicationContext val context: Context) :
     BluetoothChecker {
 
     private val bluetoothManager =

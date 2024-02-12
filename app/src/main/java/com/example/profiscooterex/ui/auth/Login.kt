@@ -38,31 +38,33 @@ import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 @AuthNavGraph
 @Destination
 @Composable
-fun LoginScreen(viewModel : AuthViewModel? = hiltViewModel(), navigator: DestinationsNavigator) {
+fun LoginScreen(viewModel: AuthViewModel? = hiltViewModel(), navigator: DestinationsNavigator) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     val loginFlow = viewModel?.loginFlow?.collectAsState()
 
-    ConstraintLayout(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkGradient)
-
-    ) {
-
-        val (refHeader, refEmail, refPassword, refButtonLogin, refTextSignup, refLoader, refTextLogin) = createRefs()
+    ConstraintLayout(modifier = Modifier.fillMaxSize().background(DarkGradient)) {
+        val (
+            refHeader,
+            refEmail,
+            refPassword,
+            refButtonLogin,
+            refTextSignup,
+            refLoader,
+            refTextLogin) =
+            createRefs()
         val spacing = MaterialTheme.spacing
 
         Box(
-            modifier = Modifier
-                .constrainAs(refHeader) {
-                    top.linkTo(parent.top, spacing.extraLarge)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    width = Dimension.fillToConstraints
-                }
-                .wrapContentSize()
+            modifier =
+                Modifier.constrainAs(refHeader) {
+                        top.linkTo(parent.top, spacing.extraLarge)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        width = Dimension.fillToConstraints
+                    }
+                    .wrapContentSize()
         ) {
             AuthHeader()
         }
@@ -71,86 +73,84 @@ fun LoginScreen(viewModel : AuthViewModel? = hiltViewModel(), navigator: Destina
             text = "Login: ",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier.constrainAs(refTextLogin) {
-                bottom.linkTo(refEmail.bottom, spacing.extraLarge)
-                start.linkTo(parent.start, spacing.large)
-                end.linkTo(parent.end, spacing.large)
-                width = Dimension.fillToConstraints
-            },
+            modifier =
+                Modifier.constrainAs(refTextLogin) {
+                    bottom.linkTo(refEmail.bottom, spacing.extraLarge)
+                    start.linkTo(parent.start, spacing.large)
+                    end.linkTo(parent.end, spacing.large)
+                    width = Dimension.fillToConstraints
+                },
         )
         TextField(
             value = email,
-            onValueChange = {
-                email = it
-            },
-            label = {
-                Text(text = stringResource(id = R.string.email))
-            },
-            modifier = Modifier.constrainAs(refEmail) {
-                top.linkTo(refHeader.bottom, spacing.extraLarge)
-                start.linkTo(parent.start, spacing.large)
-                end.linkTo(parent.end, spacing.large)
-                width = Dimension.fillToConstraints
-            },
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.None,
-                autoCorrect = false,
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
-            )
+            onValueChange = { email = it },
+            label = { Text(text = stringResource(id = R.string.email)) },
+            modifier =
+                Modifier.constrainAs(refEmail) {
+                    top.linkTo(refHeader.bottom, spacing.extraLarge)
+                    start.linkTo(parent.start, spacing.large)
+                    end.linkTo(parent.end, spacing.large)
+                    width = Dimension.fillToConstraints
+                },
+            keyboardOptions =
+                KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                )
         )
 
         TextField(
             value = password,
-            onValueChange = {
-                password = it
-            },
-            label = {
-                Text(text = stringResource(id = R.string.password))
-            },
-            modifier = Modifier.constrainAs(refPassword) {
-                top.linkTo(refEmail.bottom, spacing.medium)
-                start.linkTo(parent.start, spacing.large)
-                end.linkTo(parent.end, spacing.large)
-                width = Dimension.fillToConstraints
-            },
+            onValueChange = { password = it },
+            label = { Text(text = stringResource(id = R.string.password)) },
+            modifier =
+                Modifier.constrainAs(refPassword) {
+                    top.linkTo(refEmail.bottom, spacing.medium)
+                    start.linkTo(parent.start, spacing.large)
+                    end.linkTo(parent.end, spacing.large)
+                    width = Dimension.fillToConstraints
+                },
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.None,
-                autoCorrect = false,
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
-            )
+            keyboardOptions =
+                KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
+                )
         )
 
         OutlinedButton(
-            onClick = {
-                viewModel?.login(email, password)
-            },
-            modifier = Modifier.constrainAs(refButtonLogin) {
-                top.linkTo(refPassword.bottom, spacing.large)
-                start.linkTo(parent.start, spacing.extraLarge)
-                end.linkTo(parent.end, spacing.extraLarge)
-                width = Dimension.fillToConstraints
-            },
-            colors = ButtonDefaults.buttonColors(DarkColor)
-        ) {
-            Text(text = stringResource(id = R.string.login), style = MaterialTheme.typography.titleMedium)
-        }
-
-
-        Text(
-            modifier = Modifier
-                .constrainAs(refTextSignup) {
-                    top.linkTo(refButtonLogin.bottom, spacing.medium)
+            onClick = { viewModel?.login(email, password) },
+            modifier =
+                Modifier.constrainAs(refButtonLogin) {
+                    top.linkTo(refPassword.bottom, spacing.large)
                     start.linkTo(parent.start, spacing.extraLarge)
                     end.linkTo(parent.end, spacing.extraLarge)
-                }
-                .clickable {
-                    navigator.navigate(SignupScreenDestination) {
-                        popUpTo(SignupScreenDestination.route) { inclusive = true }
-                    }
+                    width = Dimension.fillToConstraints
                 },
+            colors = ButtonDefaults.buttonColors(DarkColor)
+        ) {
+            Text(
+                text = stringResource(id = R.string.login),
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+
+        Text(
+            modifier =
+                Modifier.constrainAs(refTextSignup) {
+                        top.linkTo(refButtonLogin.bottom, spacing.medium)
+                        start.linkTo(parent.start, spacing.extraLarge)
+                        end.linkTo(parent.end, spacing.extraLarge)
+                    }
+                    .clickable {
+                        navigator.navigate(SignupScreenDestination) {
+                            popUpTo(SignupScreenDestination.route) { inclusive = true }
+                        }
+                    },
             text = stringResource(id = R.string.dont_have_account),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
@@ -158,24 +158,27 @@ fun LoginScreen(viewModel : AuthViewModel? = hiltViewModel(), navigator: Destina
         )
 
         loginFlow?.value?.let {
-            when(it){
+            when (it) {
                 is Resource.Failure -> {
                     val context = LocalContext.current
                     Toast.makeText(context, it.exception.message, Toast.LENGTH_LONG).show()
                 }
                 Resource.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.constrainAs(refLoader){
-                        top.linkTo(parent.top)
-                        bottom.linkTo(parent.bottom)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    })
+                    CircularProgressIndicator(
+                        modifier =
+                            Modifier.constrainAs(refLoader) {
+                                top.linkTo(parent.top)
+                                bottom.linkTo(parent.bottom)
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
+                            }
+                    )
                 }
                 is Resource.Success -> {
                     LaunchedEffect(Unit) {
                         navigator.popBackStack()
                         navigator.navigate(HomeScreenDestination) {
-                            popUpTo(HomeScreenDestination.route) {inclusive = true}
+                            popUpTo(HomeScreenDestination.route) { inclusive = true }
                         }
                     }
                 }
@@ -184,11 +187,8 @@ fun LoginScreen(viewModel : AuthViewModel? = hiltViewModel(), navigator: Destina
     }
 }
 
-
 @Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 fun LoginScreenPreviewLight() {
-    AppTheme {
-        LoginScreen(null, navigator = EmptyDestinationsNavigator)
-    }
+    AppTheme { LoginScreen(null, navigator = EmptyDestinationsNavigator) }
 }

@@ -6,13 +6,13 @@ import android.content.Context
 import android.content.Intent
 
 class BluetoothStateBroadcastReceiver(private val onStateChanged: (Boolean) -> Unit) :
-BroadcastReceiver() {
+    BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent) {
         val action = intent.action
 
-        if(action == BluetoothAdapter.ACTION_STATE_CHANGED) {
-            when(intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {
+        if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
+            when (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {
                 BluetoothAdapter.STATE_OFF -> {
                     onStateChanged.invoke(false)
                 }
@@ -28,5 +28,4 @@ BroadcastReceiver() {
             }
         }
     }
-
 }

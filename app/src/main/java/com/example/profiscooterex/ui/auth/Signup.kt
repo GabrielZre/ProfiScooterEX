@@ -46,23 +46,28 @@ fun SignupScreen(viewModel: AuthViewModel? = hiltViewModel(), navigator: Destina
 
     val signupFlow = viewModel?.signupFlow?.collectAsState()
 
-    ConstraintLayout(
-        modifier = Modifier.fillMaxSize()
-            .background(DarkGradient)
-
-    ) {
-        val (refHeader, refName, refEmail, refPassword, refButtonSignup, refTextSignup, refLoader, refTextRegister) = createRefs()
+    ConstraintLayout(modifier = Modifier.fillMaxSize().background(DarkGradient)) {
+        val (
+            refHeader,
+            refName,
+            refEmail,
+            refPassword,
+            refButtonSignup,
+            refTextSignup,
+            refLoader,
+            refTextRegister) =
+            createRefs()
         val spacing = MaterialTheme.spacing
 
         Box(
-            modifier = Modifier
-                .constrainAs(refHeader) {
-                    top.linkTo(parent.top, spacing.extraLarge)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    width = Dimension.fillToConstraints
-                }
-                .wrapContentSize()
+            modifier =
+                Modifier.constrainAs(refHeader) {
+                        top.linkTo(parent.top, spacing.extraLarge)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        width = Dimension.fillToConstraints
+                    }
+                    .wrapContentSize()
         ) {
             AuthHeader()
         }
@@ -71,109 +76,105 @@ fun SignupScreen(viewModel: AuthViewModel? = hiltViewModel(), navigator: Destina
             text = "Register: ",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier.constrainAs(refTextRegister) {
-                bottom.linkTo(refName.bottom, spacing.extraLarge)
-                start.linkTo(parent.start, spacing.large)
-                end.linkTo(parent.end, spacing.large)
-                width = Dimension.fillToConstraints
-            },
+            modifier =
+                Modifier.constrainAs(refTextRegister) {
+                    bottom.linkTo(refName.bottom, spacing.extraLarge)
+                    start.linkTo(parent.start, spacing.large)
+                    end.linkTo(parent.end, spacing.large)
+                    width = Dimension.fillToConstraints
+                },
         )
 
         TextField(
             value = name,
-            onValueChange = {
-                name = it
-            },
-            label = {
-                Text(text = stringResource(id = R.string.name))
-            },
-            modifier = Modifier.constrainAs(refName) {
-                top.linkTo(refHeader.bottom, spacing.extraLarge)
-                start.linkTo(parent.start, spacing.large)
-                end.linkTo(parent.end, spacing.large)
-                width = Dimension.fillToConstraints
-            },
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.None,
-                autoCorrect = false,
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
-            )
+            onValueChange = { name = it },
+            label = { Text(text = stringResource(id = R.string.name)) },
+            modifier =
+                Modifier.constrainAs(refName) {
+                    top.linkTo(refHeader.bottom, spacing.extraLarge)
+                    start.linkTo(parent.start, spacing.large)
+                    end.linkTo(parent.end, spacing.large)
+                    width = Dimension.fillToConstraints
+                },
+            keyboardOptions =
+                KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                )
         )
 
         TextField(
             value = email,
-            onValueChange = {
-                email = it
-            },
-            label = {
-                Text(text = stringResource(id = R.string.email))
-            },
-            modifier = Modifier.constrainAs(refEmail) {
-                top.linkTo(refName.bottom, spacing.medium)
-                start.linkTo(parent.start, spacing.large)
-                end.linkTo(parent.end, spacing.large)
-                width = Dimension.fillToConstraints
-            },
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.None,
-                autoCorrect = false,
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
-            )
+            onValueChange = { email = it },
+            label = { Text(text = stringResource(id = R.string.email)) },
+            modifier =
+                Modifier.constrainAs(refEmail) {
+                    top.linkTo(refName.bottom, spacing.medium)
+                    start.linkTo(parent.start, spacing.large)
+                    end.linkTo(parent.end, spacing.large)
+                    width = Dimension.fillToConstraints
+                },
+            keyboardOptions =
+                KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                )
         )
 
         TextField(
             value = password,
-            onValueChange = {
-                password = it
-            },
-            label = {
-                Text(text = stringResource(id = R.string.password))
-            },
-            modifier = Modifier.constrainAs(refPassword) {
-                top.linkTo(refEmail.bottom, spacing.medium)
-                start.linkTo(parent.start, spacing.large)
-                end.linkTo(parent.end, spacing.large)
-                width = Dimension.fillToConstraints
-            },
+            onValueChange = { password = it },
+            label = { Text(text = stringResource(id = R.string.password)) },
+            modifier =
+                Modifier.constrainAs(refPassword) {
+                    top.linkTo(refEmail.bottom, spacing.medium)
+                    start.linkTo(parent.start, spacing.large)
+                    end.linkTo(parent.end, spacing.large)
+                    width = Dimension.fillToConstraints
+                },
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.None,
-                autoCorrect = false,
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
-            )
+            keyboardOptions =
+                KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
+                )
         )
 
         OutlinedButton(
-            onClick = {
-                viewModel?.signup(name, email, password)
-            },
-            modifier = Modifier.constrainAs(refButtonSignup) {
-                top.linkTo(refPassword.bottom, spacing.large)
-                start.linkTo(parent.start, spacing.extraLarge)
-                end.linkTo(parent.end, spacing.extraLarge)
-                width = Dimension.fillToConstraints
-            },
-            colors = ButtonDefaults.buttonColors(DarkColor)
-        ) {
-            Text(text = stringResource(id = R.string.signup), style = MaterialTheme.typography.titleMedium)
-        }
-
-
-        Text(
-            modifier = Modifier
-                .constrainAs(refTextSignup) {
-                    top.linkTo(refButtonSignup.bottom, spacing.medium)
+            onClick = { viewModel?.signup(name, email, password) },
+            modifier =
+                Modifier.constrainAs(refButtonSignup) {
+                    top.linkTo(refPassword.bottom, spacing.large)
                     start.linkTo(parent.start, spacing.extraLarge)
                     end.linkTo(parent.end, spacing.extraLarge)
-                }
-                .clickable {
-                    navigator.navigate(LoginScreenDestination) {
-                        popUpTo(LoginScreenDestination.route) {inclusive = true}
-                    }
+                    width = Dimension.fillToConstraints
                 },
+            colors = ButtonDefaults.buttonColors(DarkColor)
+        ) {
+            Text(
+                text = stringResource(id = R.string.signup),
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+
+        Text(
+            modifier =
+                Modifier.constrainAs(refTextSignup) {
+                        top.linkTo(refButtonSignup.bottom, spacing.medium)
+                        start.linkTo(parent.start, spacing.extraLarge)
+                        end.linkTo(parent.end, spacing.extraLarge)
+                    }
+                    .clickable {
+                        navigator.navigate(LoginScreenDestination) {
+                            popUpTo(LoginScreenDestination.route) { inclusive = true }
+                        }
+                    },
             text = stringResource(id = R.string.already_have_account),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
@@ -181,18 +182,21 @@ fun SignupScreen(viewModel: AuthViewModel? = hiltViewModel(), navigator: Destina
         )
 
         signupFlow?.value?.let {
-            when(it){
+            when (it) {
                 is Resource.Failure -> {
                     val context = LocalContext.current
                     Toast.makeText(context, it.exception.message, Toast.LENGTH_LONG).show()
                 }
                 Resource.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.constrainAs(refLoader){
-                        top.linkTo(parent.top)
-                        bottom.linkTo(parent.bottom)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    })
+                    CircularProgressIndicator(
+                        modifier =
+                            Modifier.constrainAs(refLoader) {
+                                top.linkTo(parent.top)
+                                bottom.linkTo(parent.bottom)
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
+                            }
+                    )
                 }
                 is Resource.Success -> {
                     LaunchedEffect(Unit) {
@@ -207,23 +211,17 @@ fun SignupScreen(viewModel: AuthViewModel? = hiltViewModel(), navigator: Destina
                 }
             }
         }
-
     }
 }
-
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Composable
 fun SignupScreenPreviewLight() {
-    AppTheme {
-        SignupScreen(null, navigator = EmptyDestinationsNavigator)
-    }
+    AppTheme { SignupScreen(null, navigator = EmptyDestinationsNavigator) }
 }
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun SignupScreenPreviewDark() {
-    AppTheme {
-        SignupScreen(null, navigator = EmptyDestinationsNavigator)
-    }
+    AppTheme { SignupScreen(null, navigator = EmptyDestinationsNavigator) }
 }

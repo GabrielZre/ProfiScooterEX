@@ -11,12 +11,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.DisabledByDefault
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -67,14 +67,9 @@ fun SaveTripDialog(
         titleContentColor = Color.White,
         textContentColor = Color.White,
         icon = {},
-        title = {
-            Text(text = dialogTitle)
-        },
+        title = { Text(text = dialogTitle) },
         text = {
-            Column(
-                modifier = Modifier
-                    .height(IntrinsicSize.Min)
-            ) {
+            Column(modifier = Modifier.height(IntrinsicSize.Min)) {
                 OutlinedTextField(
                     value = tripName,
                     onValueChange = {
@@ -82,20 +77,17 @@ fun SaveTripDialog(
                         isErrorState = it.isEmpty()
                     },
                     label = { Text("Trip name", color = Color.Gray) },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = DarkColor2,
-                        unfocusedBorderColor = if (isErrorState) Color.Red else DarkColor2,
-                        unfocusedTextColor = Color.White,
-                        focusedTextColor = Color.White
+                    colors =
+                        OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = DarkColor2,
+                            unfocusedBorderColor = if (isErrorState) Color.Red else DarkColor2,
+                            unfocusedTextColor = Color.White,
+                            focusedTextColor = Color.White
                         )
                 )
-                Spacer(
-                    modifier = Modifier.height(20.dp)
-                )
+                Spacer(modifier = Modifier.height(20.dp))
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(IntrinsicSize.Min),
+                    modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
@@ -125,9 +117,7 @@ fun SaveTripDialog(
                 }
                 HorizontalDivider(thickness = 2.dp, color = DarkColor2)
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(IntrinsicSize.Min),
+                    modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
@@ -142,9 +132,7 @@ fun SaveTripDialog(
                             fontWeight = FontWeight.Bold,
                             color = LightGray
                         )
-                        Text(
-                            text = "${"%.1f".format(viewModel.averageSpeed)}Kmh"
-                        )
+                        Text(text = "${"%.1f".format(viewModel.averageSpeed)}Kmh")
                     }
                     VerticalDivider(color = DarkColor2, thickness = 2.dp)
                     Column(
@@ -158,16 +146,12 @@ fun SaveTripDialog(
                             fontWeight = FontWeight.Bold,
                             color = LightGray
                         )
-                        Text(
-                            text = "${"%.1f".format(viewModel.calculateBatteryDrain())}%"
-                        )
+                        Text(text = "${"%.1f".format(viewModel.calculateBatteryDrain())}%")
                     }
                 }
             }
         },
-        onDismissRequest = {
-            onDismissRequest()
-        },
+        onDismissRequest = { onDismissRequest() },
         confirmButton = {
             Button(
                 onClick = {
@@ -183,17 +167,16 @@ fun SaveTripDialog(
                                 )
                             }
                         }
-                    }
-                    else {
+                    } else {
                         isErrorState = true
                     }
                 },
                 shape = RoundedCornerShape(5.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = DarkColor2,
-                ),
-                modifier = Modifier
-                    .padding(8.dp)
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = DarkColor2,
+                    ),
+                modifier = Modifier.padding(8.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Bookmark,
@@ -204,15 +187,13 @@ fun SaveTripDialog(
         },
         dismissButton = {
             Button(
-                onClick = {
-                    onDismissRequest()
-                },
+                onClick = { onDismissRequest() },
                 shape = RoundedCornerShape(5.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = DarkColor2,
-                ),
-                modifier = Modifier
-                    .padding(8.dp)
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = DarkColor2,
+                    ),
+                modifier = Modifier.padding(8.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.DisabledByDefault,

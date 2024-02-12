@@ -20,14 +20,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddRoad
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -60,25 +60,29 @@ import com.example.profiscooterex.ui.theme.Green500
 import com.example.profiscooterex.ui.theme.GreenGradient
 import com.example.profiscooterex.ui.theme.LightColor
 import com.ramcosta.composedestinations.annotation.Destination
-import kotlinx.coroutines.CoroutineScope
-
-import kotlinx.coroutines.launch
 import kotlin.math.floor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
-
-fun Animatable<Float, AnimationVector1D>.toUiState(averageSpeed: Float, distanceTrip: Float, dashboardState: DashboardState) = UiState(
-    arcValue = value,
-    speed = "%.1f".format(value * 100),
-    averageSpeed = "%.1f".format(averageSpeed),
-    distanceTrip = "%.1f".format(distanceTrip),
-    dashboardStateColor = when (dashboardState) {
-        DashboardState.Active -> Color.Green
-        DashboardState.Fetching -> Color.Cyan
-        DashboardState.Ready -> Color.White
-        DashboardState.Stopped -> Color.Yellow
-        DashboardState.Disabled -> Color.Red
-    }
-)
+fun Animatable<Float, AnimationVector1D>.toUiState(
+    averageSpeed: Float,
+    distanceTrip: Float,
+    dashboardState: DashboardState
+) =
+    UiState(
+        arcValue = value,
+        speed = "%.1f".format(value * 100),
+        averageSpeed = "%.1f".format(averageSpeed),
+        distanceTrip = "%.1f".format(distanceTrip),
+        dashboardStateColor =
+            when (dashboardState) {
+                DashboardState.Active -> Color.Green
+                DashboardState.Fetching -> Color.Cyan
+                DashboardState.Ready -> Color.White
+                DashboardState.Stopped -> Color.Yellow
+                DashboardState.Disabled -> Color.Red
+            }
+    )
 
 @SuppressLint("UnrememberedMutableState", "CoroutineCreationDuringComposition")
 @Destination
@@ -97,19 +101,24 @@ fun DashboardSpeedIndicator(
 
     animation.toUiState(averageSpeed, distanceTrip, dashboardState).speed = currentSpeed.toString()
 
-    DashboardSpeedIndicator(animation.toUiState(averageSpeed, distanceTrip, dashboardState), onClickDashboard, onLongClickDashboard)
+    DashboardSpeedIndicator(
+        animation.toUiState(averageSpeed, distanceTrip, dashboardState),
+        onClickDashboard,
+        onLongClickDashboard
+    )
 
     LaunchedEffect(initAnimation.value) {
-        if (!initAnimation.value && (dashboardState == DashboardState.Disabled || dashboardState == DashboardState.Ready)){
-            launchAnimation(coroutineScope, animation) {
-                initAnimation.value = true
-            }
+        if (
+            !initAnimation.value &&
+                (dashboardState == DashboardState.Disabled ||
+                    dashboardState == DashboardState.Ready)
+        ) {
+            launchAnimation(coroutineScope, animation) { initAnimation.value = true }
         }
     }
-    if(initAnimation.value) {
+    if (initAnimation.value) {
         start(currentSpeed, coroutineScope, animation)
     }
-
 }
 
 suspend fun launchAnimation(
@@ -118,25 +127,28 @@ suspend fun launchAnimation(
     onAnimationComplete: () -> Unit
 ) {
     coroutineScope.launch {
-        animation.animateTo(1f, keyframes {
-            durationMillis = 1000
-        })
-        animation.animateTo(0f, keyframes {
-            durationMillis = 1000
-        })
+        animation.animateTo(1f, keyframes { durationMillis = 1000 })
+        animation.animateTo(0f, keyframes { durationMillis = 1000 })
         onAnimationComplete()
     }
 }
-fun start(currentSpeed: Float ,coroutineScope: CoroutineScope, animation: Animatable<Float, AnimationVector1D>) {
+
+fun start(
+    currentSpeed: Float,
+    coroutineScope: CoroutineScope,
+    animation: Animatable<Float, AnimationVector1D>
+) {
     coroutineScope.launch {
-        animation.animateTo( currentSpeed / 100, keyframes {
-            durationMillis = 1000
-        })
+        animation.animateTo(currentSpeed / 100, keyframes { durationMillis = 1000 })
     }
 }
 
 @Composable
-private fun DashboardSpeedIndicator(state: UiState, onClickDashboard: () -> Unit,onLongClickDashboard: () -> Unit) {
+private fun DashboardSpeedIndicator(
+    state: UiState,
+    onClickDashboard: () -> Unit,
+    onLongClickDashboard: () -> Unit
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier,
@@ -150,20 +162,18 @@ private fun DashboardSpeedIndicator(state: UiState, onClickDashboard: () -> Unit
 fun SpeedIndicator(state: UiState, onClickDashboard: () -> Unit, onLongClickDashboard: () -> Unit) {
     val rememberedClick by rememberUpdatedState(onClickDashboard) // Capture updated state
 
-
     Box(
         contentAlignment = Alignment.BottomCenter,
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1f)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { rememberedClick() },
-                    onLongPress = { onLongClickDashboard() },
-                )
-            }
-            .bounceClick()
-
+        modifier =
+            Modifier.fillMaxWidth()
+                .aspectRatio(1f)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = { rememberedClick() },
+                        onLongPress = { onLongClickDashboard() },
+                    )
+                }
+                .bounceClick()
     ) {
         CircularSpeedIndicator(state.arcValue, 240f)
         SpeedValue(state.speed, state.averageSpeed, state.distanceTrip, state.dashboardStateColor)
@@ -171,11 +181,14 @@ fun SpeedIndicator(state: UiState, onClickDashboard: () -> Unit, onLongClickDash
 }
 
 @Composable
-fun SpeedValue(value: String, averageSpeed: String, distanceTrip: String, dashboardStateColor: Color) {
+fun SpeedValue(
+    value: String,
+    averageSpeed: String,
+    distanceTrip: String,
+    dashboardStateColor: Color
+) {
     Column(
-        Modifier
-            .fillMaxSize()
-            .padding(top = 50.dp),
+        Modifier.fillMaxSize().padding(top = 50.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -183,29 +196,24 @@ fun SpeedValue(value: String, averageSpeed: String, distanceTrip: String, dashbo
             imageVector = Icons.Default.LocationOn,
             tint = dashboardStateColor,
             contentDescription = "Location On",
-            modifier = Modifier
-                .padding(bottom = 20.dp)
+            modifier = Modifier.padding(bottom = 20.dp)
         )
 
-        Text(
-            text = value,
-            fontSize = 45.sp,
-            color = Color.White,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            "Kmh",
-            color = Color.White,
-            style = MaterialTheme.typography.bodySmall
-        )
+        Text(text = value, fontSize = 45.sp, color = Color.White, fontWeight = FontWeight.Bold)
+        Text("Kmh", color = Color.White, style = MaterialTheme.typography.bodySmall)
         Spacer(modifier = Modifier.height(30.dp))
         Row {
             Column(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(imageVector = Icons.Default.AddRoad, tint = Color.Gray, contentDescription = "Distance Trip")
-                Text(text = distanceTrip,
+                Icon(
+                    imageVector = Icons.Default.AddRoad,
+                    tint = Color.Gray,
+                    contentDescription = "Distance Trip"
+                )
+                Text(
+                    text = distanceTrip,
                     fontSize = 15.sp,
                     color = Color.White,
                     fontWeight = FontWeight.Medium
@@ -216,13 +224,17 @@ fun SpeedValue(value: String, averageSpeed: String, distanceTrip: String, dashbo
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(imageVector = Icons.Default.Speed, tint = Color.Gray, contentDescription = "Average speed")
-                Text(text = averageSpeed,
+                Icon(
+                    imageVector = Icons.Default.Speed,
+                    tint = Color.Gray,
+                    contentDescription = "Average speed"
+                )
+                Text(
+                    text = averageSpeed,
                     fontSize = 15.sp,
                     color = Color.White,
                     fontWeight = FontWeight.Medium
                 )
-
             }
         }
     }
@@ -230,11 +242,7 @@ fun SpeedValue(value: String, averageSpeed: String, distanceTrip: String, dashbo
 
 @Composable
 fun CircularSpeedIndicator(value: Float, angle: Float) {
-    Canvas(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(40.dp)
-    ) {
+    Canvas(modifier = Modifier.fillMaxSize().padding(40.dp)) {
         drawLines(value, angle)
         drawArcs(value, angle)
     }
@@ -307,30 +315,34 @@ fun DrawScope.drawLines(progress: Float, maxValue: Float, numberOfLines: Int = 4
     }
 }
 
-enum class ButtonState { Pressed, Idle }
+enum class ButtonState {
+    Pressed,
+    Idle
+}
+
 fun Modifier.bounceClick() = composed {
     var buttonState by remember { mutableStateOf(ButtonState.Idle) }
-    val scale by animateFloatAsState(if (buttonState == ButtonState.Pressed) 0.90f else 1f,
-        label = ""
-    )
+    val scale by
+        animateFloatAsState(if (buttonState == ButtonState.Pressed) 0.90f else 1f, label = "")
 
-    this
-        .graphicsLayer {
+    this.graphicsLayer {
             scaleX = scale
             scaleY = scale
         }
         .pointerInput(buttonState, Unit) {
             awaitPointerEventScope {
-                buttonState = if (buttonState == ButtonState.Pressed) {
-                    waitForUpOrCancellation()
-                    ButtonState.Idle
-                } else {
-                    awaitFirstDown(false)
-                    ButtonState.Pressed
-                }
+                buttonState =
+                    if (buttonState == ButtonState.Pressed) {
+                        waitForUpOrCancellation()
+                        ButtonState.Idle
+                    } else {
+                        awaitFirstDown(false)
+                        ButtonState.Pressed
+                    }
             }
         }
 }
+
 @Preview(showBackground = true, backgroundColor = 0xFF00FF00)
 @Composable
 fun DashboardSpeedIndicatorPreview() {

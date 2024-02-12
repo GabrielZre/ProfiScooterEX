@@ -8,11 +8,11 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -71,108 +71,79 @@ fun HomeScreen(
 ) {
 
     val spacing = MaterialTheme.spacing
-    
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkGradient)
-    ) {
+
+    Column(modifier = Modifier.fillMaxSize().background(DarkGradient)) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(spacing.medium)
-                .padding(top = spacing.medium),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
+            modifier =
+                Modifier.fillMaxWidth()
                     .wrapContentHeight()
-            ) {
+                    .padding(spacing.medium)
+                    .padding(top = spacing.medium),
+        ) {
+            Row(modifier = Modifier.fillMaxWidth().wrapContentHeight()) {
                 Text(
                     text = stringResource(id = R.string.welcome),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onPrimary
                 )
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.End
-                ) {
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
                     OutlinedButton(
                         onClick = {
                             logout()
                             goToLoginScreen()
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = DarkColor, contentColor = Color.White)
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = DarkColor,
+                                contentColor = Color.White
+                            )
                     ) {
-                        Icon(
-                            Icons.Default.Logout,
-                            contentDescription = "logout"
-                        )
+                        Icon(Icons.Default.Logout, contentDescription = "logout")
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-            ) {
+            Row(modifier = Modifier.fillMaxWidth().wrapContentHeight()) {
                 Text(
                     text = userData!!.nick,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.End
-                ) {
+            Row(modifier = Modifier.fillMaxWidth().wrapContentHeight()) {
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
                     OutlinedButton(
-                        onClick = {
-                            goToScooterSettingsScreen()
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = DarkColor, contentColor = Color.White)
+                        onClick = { goToScooterSettingsScreen() },
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = DarkColor,
+                                contentColor = Color.White
+                            )
                     ) {
-                        Icon(
-                            Icons.Default.ElectricScooter,
-                            contentDescription = "logout"
-                        )
+                        Icon(Icons.Default.ElectricScooter, contentDescription = "logout")
                     }
                 }
-
             }
-
         }
 
         Spacer(modifier = Modifier.height(20.dp)) // Add spacing
 
-        Row()
-        {
-            HistoryTrips(tripData) { tripDate: String -> removeTrip(tripDate) }
-        }
+        Row() { HistoryTrips(tripData) { tripDate: String -> removeTrip(tripDate) } }
     }
 }
 
 @Composable
-fun HistoryTrips(getTripData : List<TripDetails>, removeTrip: (String) -> Unit) {
+fun HistoryTrips(getTripData: List<TripDetails>, removeTrip: (String) -> Unit) {
     Column {
         HorizontalDivider()
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min)
-                .background(DarkColor2)
-                .padding(start = 16.dp, top = 5.dp, end= 16.dp, bottom = 5.dp)
+            modifier =
+                Modifier.fillMaxWidth()
+                    .height(IntrinsicSize.Min)
+                    .background(DarkColor2)
+                    .padding(start = 16.dp, top = 5.dp, end = 16.dp, bottom = 5.dp)
         ) {
             Column(
                 modifier = Modifier.weight(1f),
@@ -207,40 +178,31 @@ fun HistoryTrips(getTripData : List<TripDetails>, removeTrip: (String) -> Unit) 
             }
         }
         HorizontalDivider()
-        if(getTripData.isEmpty()) {
-            val rotationState by rememberInfiniteTransition(label = "").animateFloat(
-                initialValue = 0f,
-                targetValue = 360f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(1000, easing = LinearEasing)
-                ), label = ""
-            )
+        if (getTripData.isEmpty()) {
+            val rotationState by
+                rememberInfiniteTransition(label = "")
+                    .animateFloat(
+                        initialValue = 0f,
+                        targetValue = 360f,
+                        animationSpec =
+                            infiniteRepeatable(animation = tween(1000, easing = LinearEasing)),
+                        label = ""
+                    )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
+            Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
                 Image(
                     painter = painterResource(id = R.drawable.profiscooter_logo),
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(150.dp)
-                        .rotate(rotationState)
-                        .align(Alignment.Center)
+                    modifier = Modifier.size(150.dp).rotate(rotationState).align(Alignment.Center)
                 )
             }
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(bottom = 55.dp)
-            ) {
+            LazyColumn(modifier = Modifier.padding(bottom = 55.dp)) {
                 items(items = getTripData) { trip ->
                     HistoryItem(trip) { tripDate -> removeTrip(tripDate) }
                 }
             }
         }
-
     }
 }
 
@@ -254,6 +216,7 @@ private fun TextTrip(text: String, modifier: Modifier) {
         textAlign = TextAlign.Center
     )
 }
+
 @Composable
 private fun TextTripTitle(text: String, modifier: Modifier) {
     Text(
@@ -275,42 +238,27 @@ private fun TextTripUnit(text: String, modifier: Modifier) {
         textAlign = TextAlign.Center
     )
 }
+
 @Composable
 fun HistoryItem(trip: TripDetails, removeTrip: (String) -> Unit) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp, 10.dp, 0.dp, 0.dp),
+        modifier = Modifier.fillMaxWidth().padding(10.dp, 10.dp, 0.dp, 0.dp),
         shape = RoundedCornerShape(20.dp),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(LightColor)
-                .padding(top = 5.dp, bottom = 5.dp)
+            modifier =
+                Modifier.fillMaxWidth().background(LightColor).padding(top = 5.dp, bottom = 5.dp)
         ) {
-
-            Box(
-                modifier = Modifier
-                    .weight(0.93f)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 5.dp, bottom = 5.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 10.dp, bottom = 5.dp)
-                    ) {
+            Box(modifier = Modifier.weight(0.93f)) {
+                Column(modifier = Modifier.fillMaxWidth().padding(top = 5.dp, bottom = 5.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth().padding(start = 10.dp, bottom = 5.dp)) {
                         TextTrip(text = trip.tripName, modifier = Modifier.weight(1f))
                         TextTrip(text = trip.dateTime, modifier = Modifier.weight(1f))
                     }
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 10.dp, top = 5.dp, bottom = 5.dp)
+                        modifier =
+                            Modifier.fillMaxWidth()
+                                .padding(start = 10.dp, top = 5.dp, bottom = 5.dp)
                     ) {
                         TextTrip(text = trip.totalDistance, modifier = Modifier.weight(1f))
                         TextTrip(text = trip.distanceTime, modifier = Modifier.weight(1f))
@@ -320,18 +268,10 @@ fun HistoryItem(trip: TripDetails, removeTrip: (String) -> Unit) {
                 }
             }
             Box(
-                modifier = Modifier
-                    .weight(0.07f)
-                    .align(Alignment.CenterVertically)
-                    .fillMaxHeight()
+                modifier = Modifier.weight(0.07f).align(Alignment.CenterVertically).fillMaxHeight()
             ) {
-
                 Icon(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .clickable {
-                            removeTrip(trip.dateTime)
-                        },
+                    modifier = Modifier.fillMaxHeight().clickable { removeTrip(trip.dateTime) },
                     imageVector = Icons.Filled.Delete,
                     contentDescription = "logout",
                     tint = DarkColor2
@@ -341,22 +281,28 @@ fun HistoryItem(trip: TripDetails, removeTrip: (String) -> Unit) {
     }
 }
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 @ContentNavGraph(start = true)
 @Destination
 @Composable
-fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), dataViewModel: DataViewModel? = hiltViewModel(), navigator: DestinationsNavigator) {
+fun HomeScreen(
+    viewModel: AuthViewModel? = hiltViewModel(),
+    dataViewModel: DataViewModel? = hiltViewModel(),
+    navigator: DestinationsNavigator
+) {
     HomeScreen(
         logout = { viewModel?.logout() },
         goToLoginScreen = {
             navigator.popBackStack()
             navigator.navigate(LoginScreenDestination) {
-            popUpTo(LoginScreenDestination.route) {inclusive = true}
-        } },
-        goToScooterSettingsScreen = { navigator.navigate(ScooterSettingsScreenDestination) {
-            popUpTo(ScooterSettingsScreenDestination.route) {inclusive = false}
-        } },
+                popUpTo(LoginScreenDestination.route) { inclusive = true }
+            }
+        },
+        goToScooterSettingsScreen = {
+            navigator.navigate(ScooterSettingsScreenDestination) {
+                popUpTo(ScooterSettingsScreenDestination.route) { inclusive = false }
+            }
+        },
         userData = dataViewModel?.userDataState?.value,
         tripData = dataViewModel?.tripsDataState?.value ?: emptyList(),
         scooterData = dataViewModel?.scooterDataState?.value,
@@ -364,25 +310,25 @@ fun HomeScreen(viewModel: AuthViewModel? = hiltViewModel(), dataViewModel: DataV
     )
 }
 
-
-val sampleTrips = listOf(
-    TripDetails(
-        dateTime = "2023-08-21 10:00 AM",
-        tripName = "Trip to Park",
-        totalDistance = "10 km",
-        distanceTime = "1 hour",
-        averageSpeed = "10 km/h",
-        batteryDrain = "30%"
-    ),
-    TripDetails(
-        dateTime = "2023-08-22 2:30 PM",
-        tripName = "City Exploration",
-        totalDistance = "20 km",
-        distanceTime = "2 hours",
-        averageSpeed = "10 km/h",
-        batteryDrain = "50%"
-    ),
-)
+val sampleTrips =
+    listOf(
+        TripDetails(
+            dateTime = "2023-08-21 10:00 AM",
+            tripName = "Trip to Park",
+            totalDistance = "10 km",
+            distanceTime = "1 hour",
+            averageSpeed = "10 km/h",
+            batteryDrain = "30%"
+        ),
+        TripDetails(
+            dateTime = "2023-08-22 2:30 PM",
+            tripName = "City Exploration",
+            totalDistance = "20 km",
+            distanceTime = "2 hours",
+            averageSpeed = "10 km/h",
+            batteryDrain = "50%"
+        ),
+    )
 
 val sampleTrip =
     TripDetails(
@@ -393,13 +339,7 @@ val sampleTrip =
         averageSpeed = "10 km/h",
         batteryDrain = "30%"
     )
-val sampleUser =
-    User(
-        nick = "User",
-        age = "26",
-        email = "example@gmail.com"
-    )
-
+val sampleUser = User(nick = "User", age = "26", email = "example@gmail.com")
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true, device = Devices.PIXEL)
@@ -423,15 +363,11 @@ fun HomeScreenPreview() {
 @Preview(showBackground = true)
 @Composable
 fun HistoryTripsPreview() {
-    AppTheme {
-        HistoryTrips(sampleTrips) {}
-    }
+    AppTheme { HistoryTrips(sampleTrips) {} }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun HistoryItemPreview() {
-    AppTheme {
-        HistoryItem(sampleTrip) {}
-    }
+    AppTheme { HistoryItem(sampleTrip) {} }
 }

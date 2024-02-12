@@ -33,18 +33,19 @@ import com.example.profiscooterex.ui.theme.AppTheme
 import com.ramcosta.composedestinations.DestinationsNavHost
 import com.ramcosta.composedestinations.navigation.navigate
 
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun Parent() {
     val navController = rememberNavController()
-    val currentDestination: Destination = navController.appCurrentDestinationAsState().value
-        ?: NavGraphs.root.startAppDestination
+    val currentDestination: Destination =
+        navController.appCurrentDestinationAsState().value ?: NavGraphs.root.startAppDestination
 
     Scaffold(
         bottomBar = {
-            if (currentDestination in NavGraphs.content.destinations ||
-                currentDestination.route == ScooterSettingsScreenDestination.route) {
+            if (
+                currentDestination in NavGraphs.content.destinations ||
+                    currentDestination.route == ScooterSettingsScreenDestination.route
+            ) {
                 BottomBar(navController)
             }
         },
@@ -53,22 +54,16 @@ fun Parent() {
                 BackArrow(navController)
             }
         }
-
     ) {
-        DestinationsNavHost(
-            navController = navController,
-            navGraph = NavGraphs.root
-        )
+        DestinationsNavHost(navController = navController, navGraph = NavGraphs.root)
     }
 }
 
 @SuppressLint("ResourceType")
 @Composable
-fun BottomBar(
-    navController: NavController
-) {
-    val currentDestination: Destination = navController.appCurrentDestinationAsState().value
-        ?: NavGraphs.root.startAppDestination
+fun BottomBar(navController: NavController) {
+    val currentDestination: Destination =
+        navController.appCurrentDestinationAsState().value ?: NavGraphs.root.startAppDestination
 
     BottomNavigation(
         modifier = Modifier.height(55.dp),
@@ -82,13 +77,19 @@ fun BottomBar(
                         launchSingleTop = true
                         val navigationRoutes = BottomBarDestination.values()
 
-                        val firstBottomBarDestination = navController.currentBackStack.value
-                            .firstOrNull {navBackStackEntry -> checkForDestinations(navigationRoutes, navBackStackEntry) }
-                            ?.destination
-
+                        val firstBottomBarDestination =
+                            navController.currentBackStack.value
+                                .firstOrNull { navBackStackEntry ->
+                                    checkForDestinations(navigationRoutes, navBackStackEntry)
+                                }
+                                ?.destination
 
                         if (firstBottomBarDestination != null) {
-                            if(!BottomBarDestination.values().any { it.direction == currentDestination }) {
+                            if (
+                                !BottomBarDestination.values().any {
+                                    it.direction == currentDestination
+                                }
+                            ) {
                                 navController.popBackStack()
                             }
                             popUpTo(firstBottomBarDestination.id) {
@@ -96,7 +97,6 @@ fun BottomBar(
                                 saveState = true
                             }
                             restoreState = true
-
                         }
                     }
                 },
@@ -104,10 +104,13 @@ fun BottomBar(
                     Icon(
                         imageVector = destination.icon,
                         contentDescription = stringResource(destination.label),
-                        modifier = Modifier
-                            .size(if (currentDestination == destination.direction) 30.dp else 25.dp),
-                        tint = (if (currentDestination == destination.direction) Color.Black else Color.White)
-
+                        modifier =
+                            Modifier.size(
+                                if (currentDestination == destination.direction) 30.dp else 25.dp
+                            ),
+                        tint =
+                            (if (currentDestination == destination.direction) Color.Black
+                            else Color.White)
                     )
                 },
             )
@@ -115,46 +118,30 @@ fun BottomBar(
     }
 }
 
-
-
-
 @SuppressLint("ResourceType")
 @Composable
-fun BackArrow(
-    navController: NavController
-) {
+fun BackArrow(navController: NavController) {
     Box(
-        modifier = Modifier
-            .height(55.dp)
-            .fillMaxWidth()
-            .padding(start = 20.dp),
+        modifier = Modifier.height(55.dp).fillMaxWidth().padding(start = 20.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         Icon(
             imageVector = Icons.Default.ArrowBack,
             contentDescription = "Back Arrow",
-            modifier = Modifier.clickable {
-                navController.popBackStack()
-            },
+            modifier = Modifier.clickable { navController.popBackStack() },
             tint = Color.LightGray
         )
     }
-
 }
-
-
-
-
 
 fun checkForDestinations(
     navigationRoutes: Array<BottomBarDestination>,
     navBackStackEntry: NavBackStackEntry
 ): Boolean {
     navigationRoutes.forEach {
-        if (it.direction.route == navBackStackEntry.destination.route){
-            return  true
+        if (it.direction.route == navBackStackEntry.destination.route) {
+            return true
         }
-
     }
     return false
 }
@@ -164,11 +151,7 @@ fun checkForDestinations(
 @Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 fun ParentPreview() {
-    AppTheme {
-        Surface {
-            BottomBar(navController = rememberNavController())
-        }
-    }
+    AppTheme { Surface { BottomBar(navController = rememberNavController()) } }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -176,10 +159,5 @@ fun ParentPreview() {
 @Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 fun TopBarPreview() {
-    AppTheme {
-        Surface {
-            BackArrow(navController = rememberNavController())
-        }
-    }
+    AppTheme { Surface { BackArrow(navController = rememberNavController()) } }
 }
-

@@ -5,7 +5,8 @@ plugins {
     id "com.google.gms.google-services"
     id "kotlin-kapt"
     id "dagger.hilt.android.plugin"
-    id 'com.google.devtools.ksp' version '1.9.0-1.0.11'
+    id "com.google.devtools.ksp" version "1.9.0-1.0.11"
+    id "com.ncorti.ktfmt.gradle"
 }
 
 kotlin {
@@ -52,6 +53,9 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion "1.5.2"
+    }
+    ktfmt {
+        kotlinLangStyle()
     }
 }
 
@@ -110,8 +114,6 @@ dependencies {
     implementation 'tech.utsmankece:osm-android-compose:0.0.5'
     testImplementation "io.mockk:mockk:1.13.9"
     testImplementation 'junit:junit:4.13.2'
-
-    runtimeOnly 'com.facebook:ktfmt:0.47'
 }
 
 kapt {

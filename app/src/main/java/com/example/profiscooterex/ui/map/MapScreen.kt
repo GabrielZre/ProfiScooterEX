@@ -7,8 +7,8 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,9 +41,7 @@ import org.osmdroid.util.GeoPoint
 @SuppressLint("UseCompatLoadingForDrawables")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MapScreen(
-    gpsData: GpsData?
-) {
+fun MapScreen(gpsData: GpsData?) {
     val depot = GeoPoint(gpsData?.latitude ?: 0.0, gpsData?.longitude ?: 0.0)
     val date = remember { mutableStateOf(gpsData!!.date) }
 
@@ -54,14 +52,10 @@ fun MapScreen(
         geoPoint = depot
         zoom = 16.0
     }
-    val depotMarkerState = rememberMarkerState(
-        geoPoint = depot,
-        rotation = 90f
-    )
+    val depotMarkerState = rememberMarkerState(geoPoint = depot, rotation = 90f)
     val depotIcon: Drawable? by remember {
         mutableStateOf(context.getDrawable(R.drawable.ic_electric_scooter))
     }
-
 
     LaunchedEffect(gpsData, shouldBeReady) {
         delay(250)
@@ -74,15 +68,9 @@ fun MapScreen(
         depotMarkerState.geoPoint = GeoPoint(gpsData.latitude, gpsData.longitude)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkGradient)
-    ) {
-        Surface(
-            color = Color.Transparent
-        ) {
-            if(shouldBeReady.value) {
+    Column(modifier = Modifier.fillMaxSize().background(DarkGradient)) {
+        Surface(color = Color.Transparent) {
+            if (shouldBeReady.value) {
                 OpenStreetMap(
                     modifier = Modifier.fillMaxSize(),
                     cameraState = cameraState,
@@ -95,9 +83,12 @@ fun MapScreen(
                         snippet = date.value
                     ) {
                         Column(
-                            modifier = Modifier
-                                .size(70.dp)
-                                .background(color = LightColor2, shape = RoundedCornerShape(7.dp)),
+                            modifier =
+                                Modifier.size(70.dp)
+                                    .background(
+                                        color = LightColor2,
+                                        shape = RoundedCornerShape(7.dp)
+                                    ),
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
@@ -107,7 +98,6 @@ fun MapScreen(
                     }
                 }
             }
-
         }
     }
 }
@@ -117,23 +107,13 @@ fun MapScreen(
 @Destination
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MapScreen(
-    dataViewModel: DataViewModel? = hiltViewModel()
-) {
-    MapScreen(
-        gpsData = dataViewModel?.gpsDataState?.value
-    )
+fun MapScreen(dataViewModel: DataViewModel? = hiltViewModel()) {
+    MapScreen(gpsData = dataViewModel?.gpsDataState?.value)
 }
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 fun MapScreenPreview() {
-    AppTheme {
-        Surface {
-            MapScreen()
-        }
-    }
+    AppTheme { Surface { MapScreen() } }
 }
-

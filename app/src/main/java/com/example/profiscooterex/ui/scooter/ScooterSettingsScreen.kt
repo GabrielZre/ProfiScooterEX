@@ -9,8 +9,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Battery0Bar
 import androidx.compose.material.icons.filled.BatteryFull
@@ -22,8 +20,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -78,7 +78,6 @@ fun ScooterSettingsScreen(
 
     var isPopupVisible by remember { mutableStateOf(false) }
 
-
     val batteryAhValues = remember { (5..50).map { it.toString() } }
     val batteryAhPickerState = rememberPickerState()
     batteryAhPickerState.selectedItem = batteryAh
@@ -96,27 +95,19 @@ fun ScooterSettingsScreen(
     var upperCutOffValue by remember { mutableStateOf(upperCutOff) }
     upperCutOffValue = upperCutOff
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkGradient)
-    ) {
-
+    Column(modifier = Modifier.fillMaxSize().background(DarkGradient)) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(spacing.medium)
-                .padding(top = spacing.extraLarge),
+            modifier =
+                Modifier.fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(spacing.medium)
+                    .padding(top = spacing.extraLarge),
         ) {
-            Surface(
-                color = Color.Transparent
-            ) {
+            Surface(color = Color.Transparent) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-
                     Row {
                         OutlinedTextField(
                             value = bottomCutOffValue,
@@ -127,26 +118,23 @@ fun ScooterSettingsScreen(
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                             },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number
-                            ),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.weight(0.5f),
                             shape = RoundedCornerShape(20.dp, 0.dp, 0.dp, 20.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedContainerColor = LightColor,
-                                focusedContainerColor = LightColor2,
-                                focusedPlaceholderColor = LightColor,
-                                unfocusedPlaceholderColor = Color.LightGray,
-                                focusedLeadingIconColor = LightColor,
-                                unfocusedLeadingIconColor = Color.LightGray,
-                                focusedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                cursorColor = MaterialTheme.colorScheme.onPrimary
-                            ),
+                            colors =
+                                OutlinedTextFieldDefaults.colors(
+                                    unfocusedContainerColor = LightColor,
+                                    focusedContainerColor = LightColor2,
+                                    focusedPlaceholderColor = LightColor,
+                                    unfocusedPlaceholderColor = Color.LightGray,
+                                    focusedLeadingIconColor = LightColor,
+                                    unfocusedLeadingIconColor = Color.LightGray,
+                                    focusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                    cursorColor = MaterialTheme.colorScheme.onPrimary
+                                ),
                             textStyle = MaterialTheme.typography.bodyLarge,
-                            leadingIcon = {
-                                Icon(Icons.Default.Battery0Bar, "Minimum Voltage")
-                            },
+                            leadingIcon = { Icon(Icons.Default.Battery0Bar, "Minimum Voltage") },
                         )
                         OutlinedTextField(
                             value = upperCutOffValue,
@@ -157,54 +145,44 @@ fun ScooterSettingsScreen(
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                             },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number
-                            ),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.weight(0.5f),
                             shape = RoundedCornerShape(0.dp, 20.dp, 20.dp, 0.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedContainerColor = LightColor,
-                                focusedContainerColor = LightColor2,
-                                focusedPlaceholderColor = LightColor,
-                                unfocusedPlaceholderColor = Color.LightGray,
-                                focusedLeadingIconColor = LightColor,
-                                unfocusedLeadingIconColor = Color.LightGray,
-                                focusedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                cursorColor = MaterialTheme.colorScheme.onPrimary
-
-                            ),
+                            colors =
+                                OutlinedTextFieldDefaults.colors(
+                                    unfocusedContainerColor = LightColor,
+                                    focusedContainerColor = LightColor2,
+                                    focusedPlaceholderColor = LightColor,
+                                    unfocusedPlaceholderColor = Color.LightGray,
+                                    focusedLeadingIconColor = LightColor,
+                                    unfocusedLeadingIconColor = Color.LightGray,
+                                    focusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                    cursorColor = MaterialTheme.colorScheme.onPrimary
+                                ),
                             textStyle = MaterialTheme.typography.bodyLarge,
-                            leadingIcon = {
-                                Icon(Icons.Default.BatteryFull, "Minimum Voltage")
-                            },
+                            leadingIcon = { Icon(Icons.Default.BatteryFull, "Minimum Voltage") },
                         )
-
                     }
 
                     Spacer(modifier = Modifier.height(50.dp))
 
                     Row {
-
                         Icon(
-                            modifier = Modifier
-                                .weight(0.33f)
-                                .clickable { isPopupVisible = true },
+                            modifier = Modifier.weight(0.33f).clickable { isPopupVisible = true },
                             imageVector = Icons.Default.BatteryUnknown,
                             contentDescription = "Battery Ah",
                             tint = Color.LightGray
                         )
 
                         Icon(
-                            modifier = Modifier
-                                .weight(0.33f),
+                            modifier = Modifier.weight(0.33f),
                             imageVector = Icons.Default.Bolt,
                             contentDescription = "Voltage",
                             tint = Color.LightGray
                         )
                         Icon(
-                            modifier = Modifier
-                                .weight(0.33f),
+                            modifier = Modifier.weight(0.33f),
                             imageVector = Icons.Default.ElectricScooter,
                             contentDescription = "Watt Power",
                             tint = Color.LightGray
@@ -224,17 +202,19 @@ fun ScooterSettingsScreen(
                                 visibleItemsCount = 3,
                                 modifier = Modifier.weight(0.3f),
                                 textModifier = Modifier.padding(8.dp),
-                                textStyle = TextStyle(
-                                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                ),
+                                textStyle =
+                                    TextStyle(
+                                        fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    ),
                                 textMetric = "Ah",
-                                startIndex = calculateStartIndex(
-                                    batteryAh,
-                                    batteryAhValues.first(),
-                                    batteryAhValues.last(),
-                                    1
-                                )
+                                startIndex =
+                                    calculateStartIndex(
+                                        batteryAh,
+                                        batteryAhValues.first(),
+                                        batteryAhValues.last(),
+                                        1
+                                    )
                             )
 
                             Picker(
@@ -243,17 +223,19 @@ fun ScooterSettingsScreen(
                                 visibleItemsCount = 3,
                                 modifier = Modifier.weight(0.3f),
                                 textModifier = Modifier.padding(8.dp),
-                                textStyle = TextStyle(
-                                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                ),
+                                textStyle =
+                                    TextStyle(
+                                        fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    ),
                                 textMetric = "V",
-                                startIndex = calculateStartIndex(
-                                    batteryVoltage,
-                                    batteryVoltageValues.first(),
-                                    batteryVoltageValues.last(),
-                                    1
-                                )
+                                startIndex =
+                                    calculateStartIndex(
+                                        batteryVoltage,
+                                        batteryVoltageValues.first(),
+                                        batteryVoltageValues.last(),
+                                        1
+                                    )
                             )
                             Picker(
                                 state = motorWattPickerState,
@@ -261,17 +243,19 @@ fun ScooterSettingsScreen(
                                 visibleItemsCount = 3,
                                 modifier = Modifier.weight(0.3f),
                                 textModifier = Modifier.padding(8.dp),
-                                textStyle = TextStyle(
-                                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                ),
+                                textStyle =
+                                    TextStyle(
+                                        fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    ),
                                 textMetric = "W",
-                                startIndex = calculateStartIndex(
-                                    motorWatt,
-                                    motorWattValues.first(),
-                                    motorWattValues.last(),
-                                    50
-                                )
+                                startIndex =
+                                    calculateStartIndex(
+                                        motorWatt,
+                                        motorWattValues.first(),
+                                        motorWattValues.last(),
+                                        50
+                                    )
                             )
                         }
                     }
@@ -301,7 +285,11 @@ fun ScooterSettingsScreen(
                         }
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = DarkColor, contentColor = Color.White)
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = DarkColor,
+                        contentColor = Color.White
+                    )
             ) {
                 Icon(
                     imageVector = Icons.Default.Save,
@@ -314,13 +302,15 @@ fun ScooterSettingsScreen(
     }
 }
 
-
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter", "UnusedMaterial3ScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @ContentNavGraph
 @Destination
 @Composable
-fun ScooterSettingsScreen(scooterSettingsViewModel : ScooterSettingsViewModel = hiltViewModel(), navigator: DestinationsNavigator) {
+fun ScooterSettingsScreen(
+    scooterSettingsViewModel: ScooterSettingsViewModel = hiltViewModel(),
+    navigator: DestinationsNavigator
+) {
     ScooterSettingsScreen(
         batteryAh = scooterSettingsViewModel.scooterData.batteryAh,
         batteryVoltage = scooterSettingsViewModel.scooterData.batteryVoltage,
@@ -330,13 +320,13 @@ fun ScooterSettingsScreen(scooterSettingsViewModel : ScooterSettingsViewModel = 
         calculateStartIndex = scooterSettingsViewModel::calculateStartIndex,
         saveScooterSettings = scooterSettingsViewModel::saveScooterSettings,
         backToHomeScreen = navigator::popBackStack,
-        networkStatus =  scooterSettingsViewModel.connectivityObserver.observe().collectAsState(
-            initial = ConnectivityObserver.Status.Unavailable
-        ).value
+        networkStatus =
+            scooterSettingsViewModel.connectivityObserver
+                .observe()
+                .collectAsState(initial = ConnectivityObserver.Status.Unavailable)
+                .value
     )
-
 }
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true, device = Devices.PIXEL)

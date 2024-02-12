@@ -38,37 +38,30 @@ import kotlinx.coroutines.launch
 @Destination
 @Composable
 fun PlaceHolderScreen(
-    viewModel : AuthViewModel? = hiltViewModel(),
+    viewModel: AuthViewModel? = hiltViewModel(),
     navigator: DestinationsNavigator,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
     Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkGradient)
-            .wrapContentHeight(),
-        horizontalArrangement = Arrangement.Center)
-    {
-        val scaleState by rememberInfiniteTransition(label = "").animateFloat(
-            initialValue = 3.5f,
-            targetValue = 0.1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(1100, easing = LinearEasing)
-            ), label = ""
-        )
+        modifier = Modifier.fillMaxSize().background(DarkGradient).wrapContentHeight(),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        val scaleState by
+            rememberInfiniteTransition(label = "")
+                .animateFloat(
+                    initialValue = 3.5f,
+                    targetValue = 0.1f,
+                    animationSpec =
+                        infiniteRepeatable(animation = tween(1100, easing = LinearEasing)),
+                    label = ""
+                )
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
+        Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
             Image(
                 painter = painterResource(id = R.drawable.profiscooter_logo),
                 contentDescription = "Placeholder",
-                modifier = Modifier
-                    .scale(scaleState)
-                    .align(Alignment.Center)
+                modifier = Modifier.scale(scaleState).align(Alignment.Center)
             )
         }
     }

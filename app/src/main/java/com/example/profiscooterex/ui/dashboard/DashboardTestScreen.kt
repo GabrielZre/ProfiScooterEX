@@ -24,12 +24,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.BluetoothDisabled
 import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -88,15 +88,29 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 enum class DashboardState {
-    Ready, Fetching, Active, Stopped, Disabled
+    Ready,
+    Fetching,
+    Active,
+    Stopped,
+    Disabled
 }
+
 @OptIn(ExperimentalPermissionsApi::class)
-fun determineDashboardState(isLocationEnabled: Boolean, locationPermissionState: PermissionState, locationObserverState: LocationLiveData.LocationState): DashboardState {
+fun determineDashboardState(
+    isLocationEnabled: Boolean,
+    locationPermissionState: PermissionState,
+    locationObserverState: LocationLiveData.LocationState
+): DashboardState {
     return when {
-        checkLocationPermissions(isLocationEnabled, locationPermissionState) && locationObserverState == LocationLiveData.LocationState.Active -> DashboardState.Active
-        checkLocationPermissions(isLocationEnabled, locationPermissionState) && locationObserverState == LocationLiveData.LocationState.InActive -> DashboardState.Ready
-        checkLocationPermissions(isLocationEnabled, locationPermissionState) && locationObserverState == LocationLiveData.LocationState.Fetching -> DashboardState.Fetching
-        !checkLocationPermissions(isLocationEnabled, locationPermissionState)  -> DashboardState.Disabled
+        checkLocationPermissions(isLocationEnabled, locationPermissionState) &&
+            locationObserverState == LocationLiveData.LocationState.Active -> DashboardState.Active
+        checkLocationPermissions(isLocationEnabled, locationPermissionState) &&
+            locationObserverState == LocationLiveData.LocationState.InActive -> DashboardState.Ready
+        checkLocationPermissions(isLocationEnabled, locationPermissionState) &&
+            locationObserverState == LocationLiveData.LocationState.Fetching ->
+            DashboardState.Fetching
+        !checkLocationPermissions(isLocationEnabled, locationPermissionState) ->
+            DashboardState.Disabled
         locationObserverState == LocationLiveData.LocationState.Stopped -> DashboardState.Stopped
         else -> DashboardState.Disabled
     }
@@ -136,15 +150,27 @@ fun DashboardTestScreen(
     val openAlertDialog = remember { mutableStateOf(false) }
     val snackBarHostState = remember { SnackbarHostState() }
 
-    val locationState by mutableStateOf(determineDashboardState(isLocationEnabled, locationPermissionState, locationObserverState))
+    val locationState by
+        mutableStateOf(
+            determineDashboardState(
+                isLocationEnabled,
+                locationPermissionState,
+                locationObserverState
+            )
+        )
     val onClickDashboard: () -> Unit = {
         coroutineScope.launch {
             when (locationState) {
-                DashboardState.Ready, DashboardState.Stopped -> {
+                DashboardState.Ready,
+                DashboardState.Stopped -> {
                     start()
                 }
                 DashboardState.Disabled -> {
-                    requestLocationPermissions(isLocationEnabled, requestForLocation, locationPermissionState)
+                    requestLocationPermissions(
+                        isLocationEnabled,
+                        requestForLocation,
+                        locationPermissionState
+                    )
                 }
                 else -> {
                     stop()
@@ -152,31 +178,20 @@ fun DashboardTestScreen(
             }
         }
     }
-    val onLongClickDashboard: () -> Unit = {
-        coroutineScope.launch {
-            restart()
-        }
-    }
+    val onLongClickDashboard: () -> Unit = { coroutineScope.launch { restart() } }
 
     Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkGradient)
-            .wrapContentHeight(),
-        horizontalArrangement = Arrangement.spacedBy(
-            space = 100.dp,
-            alignment = Alignment.CenterHorizontally
-        )
+        modifier = Modifier.fillMaxSize().background(DarkGradient).wrapContentHeight(),
+        horizontalArrangement =
+            Arrangement.spacedBy(space = 100.dp, alignment = Alignment.CenterHorizontally)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            
             Button(
                 onClick = {
-                    if(scooterData.areFieldsNotEmpty()) {
+                    if (scooterData.areFieldsNotEmpty()) {
                         openAlertDialog.value = true
                     } else {
                         coroutineScope.launch {
@@ -186,14 +201,12 @@ fun DashboardTestScreen(
                             )
                         }
                     }
-                          },
+                },
                 shape = RoundedCornerShape(0.dp, 0.dp, 10.dp, 10.dp),
                 colors = buttonColors(LightColor)
             ) {
                 Row(
-                    modifier = Modifier
-                        .width(IntrinsicSize.Max)
-                        .height(IntrinsicSize.Min),
+                    modifier = Modifier.width(IntrinsicSize.Max).height(IntrinsicSize.Min),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -207,58 +220,65 @@ fun DashboardTestScreen(
                     Icon(
                         imageVector = Icons.Default.Bookmark,
                         tint = Color.LightGray,
-                        contentDescription = "Bluetooth On")
-
+                        contentDescription = "Bluetooth On"
+                    )
                 }
             }
             Row {
                 if (isBluetoothEnabled && bluetoothPermissionsState.allPermissionsGranted) {
-                    Icon(imageVector = Icons.Default.Bluetooth, tint = Color.Green, contentDescription = "Bluetooth On")
+                    Icon(
+                        imageVector = Icons.Default.Bluetooth,
+                        tint = Color.Green,
+                        contentDescription = "Bluetooth On"
+                    )
                 } else {
-                    Icon(imageVector = Icons.Default.BluetoothDisabled, tint = Color.Red, contentDescription = "Bluetooth Off")
+                    Icon(
+                        imageVector = Icons.Default.BluetoothDisabled,
+                        tint = Color.Red,
+                        contentDescription = "Bluetooth Off"
+                    )
                 }
             }
 
-            DashboardSpeedIndicator(currentSpeed, averageSpeed, distanceTrip, locationState, onClickDashboard, onLongClickDashboard)
+            DashboardSpeedIndicator(
+                currentSpeed,
+                averageSpeed,
+                distanceTrip,
+                locationState,
+                onClickDashboard,
+                onLongClickDashboard
+            )
 
             ShowProgress(efficiencyFactor)
 
             Column(
-                modifier = Modifier
-                    .padding(20.dp, 0.dp, 20.dp, 40.dp)
-                    .fillMaxHeight(),
+                modifier = Modifier.padding(20.dp, 0.dp, 20.dp, 40.dp).fillMaxHeight(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
-            ){
+            ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(IntrinsicSize.Min)
-                        .background(LightColor, shape = RoundedCornerShape(20.dp))
-                        .padding(10.dp),
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .height(IntrinsicSize.Min)
+                            .background(LightColor, shape = RoundedCornerShape(20.dp))
+                            .padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                        Text(
-                            modifier = Modifier
-                                .weight(1f),
-                            text =  buildAnnotatedString {
-                                withStyle(
-                                    style = SpanStyle(fontSize = 30.sp)
-                                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text =
+                            buildAnnotatedString {
+                                withStyle(style = SpanStyle(fontSize = 30.sp)) {
                                     append(String.format("%.1f", batteryPercentage))
                                 }
-                                withStyle(
-                                    style = SpanStyle(fontSize = 22.sp)
-                                ) {
-                                    append("%")
-                                }
+                                withStyle(style = SpanStyle(fontSize = 22.sp)) { append("%") }
                             },
-                            fontSize = 30.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Center
-                        )
+                        fontSize = 30.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center
+                    )
                     VerticalDivider(color = DarkColor)
                     BatteryIcon(
                         bleConnectionState = bleConnectionState,
@@ -272,27 +292,22 @@ fun DashboardTestScreen(
                         showSnackBar = { showSnackBar(coroutineScope, snackBarHostState) }
                     )
                     VerticalDivider(color = DarkColor)
-                        Text(
-                            modifier = Modifier
-                                .weight(1f),
-                            text =  buildAnnotatedString {
-                                withStyle(
-                                    style = SpanStyle(fontSize = 30.sp)
-                                ) {
-                                    append(if (remainingDistance == 0f) "- " else String.format("%.1f", remainingDistance))
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text =
+                            buildAnnotatedString {
+                                withStyle(style = SpanStyle(fontSize = 30.sp)) {
+                                    append(
+                                        if (remainingDistance == 0f) "- "
+                                        else String.format("%.1f", remainingDistance)
+                                    )
                                 }
-                                withStyle(
-                                    style = SpanStyle(fontSize = 22.sp)
-                                ) {
-                                    append("KM")
-                                }
+                                withStyle(style = SpanStyle(fontSize = 22.sp)) { append("KM") }
                             },
-                            color = Color.White,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Center
-
-                        )
-
+                        color = Color.White,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
         }
@@ -300,7 +315,7 @@ fun DashboardTestScreen(
 
     TripDialog(openAlertDialog, networkStatus)
     NetworkSnackBar(snackBarHostState, "Scooter data unavailable")
-    if((!isLocationEnabled || !locationPermissionState.status.isGranted) && isStopWatchActive) {
+    if ((!isLocationEnabled || !locationPermissionState.status.isGranted) && isStopWatchActive) {
         stop()
         requestLocationPermissions(isLocationEnabled, requestForLocation, locationPermissionState)
     }
@@ -326,89 +341,102 @@ fun ShowProgress(score: Float) {
     }
 
     Row(
-        modifier = Modifier
-            .padding(50.dp, 0.dp, 50.dp, 0.dp)
-            .fillMaxWidth()
-            .height(25.dp)
-            .border(
-                width = 4.dp,
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        LightColor,
-                        LightColor
-                    )
-                ),
-                shape = RoundedCornerShape(50.dp)
-            )
-            .clip(
-                RoundedCornerShape(
-                    topStartPercent = 50,
-                    topEndPercent = 50,
-                    bottomEndPercent = 50,
-                    bottomStartPercent = 50
+        modifier =
+            Modifier.padding(50.dp, 0.dp, 50.dp, 0.dp)
+                .fillMaxWidth()
+                .height(25.dp)
+                .border(
+                    width = 4.dp,
+                    brush = Brush.linearGradient(colors = listOf(LightColor, LightColor)),
+                    shape = RoundedCornerShape(50.dp)
                 )
-            )
-            .background(DarkColor2),
+                .clip(
+                    RoundedCornerShape(
+                        topStartPercent = 50,
+                        topEndPercent = 50,
+                        bottomEndPercent = 50,
+                        bottomStartPercent = 50
+                    )
+                )
+                .background(DarkColor2),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (score > 0f) {
             Button(
                 contentPadding = PaddingValues(20.dp),
-                onClick = { },
-                modifier = Modifier
-                    .fillMaxWidth(animatedProgress.value)
-                    .background(brush = gradient),
+                onClick = {},
+                modifier =
+                    Modifier.fillMaxWidth(animatedProgress.value).background(brush = gradient),
                 enabled = false,
                 elevation = null,
-                colors = buttonColors(
-                    containerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent
-                )
-            ) {
-            }
+                colors =
+                    buttonColors(
+                        containerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent
+                    )
+            ) {}
         }
     }
 }
 
-fun locationStartObserver(location: LocationLiveData, lifecycleOwner: LifecycleOwner, locationObserver : Observer<LocationDetails>) {
+fun locationStartObserver(
+    location: LocationLiveData,
+    lifecycleOwner: LifecycleOwner,
+    locationObserver: Observer<LocationDetails>
+) {
     location.observe(lifecycleOwner, locationObserver)
 }
 
-fun locationRemoveObserver(location: LocationLiveData, locationObserver: Observer<LocationDetails>) {
+fun locationRemoveObserver(
+    location: LocationLiveData,
+    locationObserver: Observer<LocationDetails>
+) {
     location.removeObserver(locationObserver)
 }
 
 @OptIn(ExperimentalPermissionsApi::class)
-fun checkLocationPermissions(isLocationEnabled: Boolean, locationPermissionState: PermissionState): Boolean {
+fun checkLocationPermissions(
+    isLocationEnabled: Boolean,
+    locationPermissionState: PermissionState
+): Boolean {
     return (isLocationEnabled && locationPermissionState.status.isGranted)
 }
 
 @OptIn(ExperimentalPermissionsApi::class)
-fun checkBluetoothPermissions(isBluetoothEnabled: Boolean, bluetoothPermissionsState: MultiplePermissionsState): Boolean {
+fun checkBluetoothPermissions(
+    isBluetoothEnabled: Boolean,
+    bluetoothPermissionsState: MultiplePermissionsState
+): Boolean {
     return (isBluetoothEnabled && bluetoothPermissionsState.allPermissionsGranted)
 }
 
 @OptIn(ExperimentalPermissionsApi::class)
-fun requestLocationPermissions(isLocationEnabled: Boolean, requestForLocation: () -> Unit, locationPermissionState: PermissionState) {
-    if(!locationPermissionState.status.isGranted) {
+fun requestLocationPermissions(
+    isLocationEnabled: Boolean,
+    requestForLocation: () -> Unit,
+    locationPermissionState: PermissionState
+) {
+    if (!locationPermissionState.status.isGranted) {
         locationPermissionState.launchPermissionRequest()
     }
-    if(!isLocationEnabled) {
+    if (!isLocationEnabled) {
         requestForLocation()
     }
 }
+
 @OptIn(ExperimentalPermissionsApi::class)
-fun requestBluetoothPermissions(isBluetoothEnabled: Boolean, requestForBluetooth: () -> Unit, bluetoothPermissionState: MultiplePermissionsState) {
-    if(!isBluetoothEnabled) {
+fun requestBluetoothPermissions(
+    isBluetoothEnabled: Boolean,
+    requestForBluetooth: () -> Unit,
+    bluetoothPermissionState: MultiplePermissionsState
+) {
+    if (!isBluetoothEnabled) {
         requestForBluetooth()
     }
-    if(!bluetoothPermissionState.allPermissionsGranted) {
+    if (!bluetoothPermissionState.allPermissionsGranted) {
         bluetoothPermissionState.launchMultiplePermissionRequest()
     }
 }
-
-
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalPermissionsApi::class)
@@ -416,14 +444,15 @@ fun requestBluetoothPermissions(isBluetoothEnabled: Boolean, requestForBluetooth
 @Destination
 @Composable
 fun DashboardTestScreen(
-    permissionsVM : PermissionsViewModel = hiltViewModel(),
-    dashboardViewModel : DashboardViewModel = hiltViewModel()
+    permissionsVM: PermissionsViewModel = hiltViewModel(),
+    dashboardViewModel: DashboardViewModel = hiltViewModel()
 ) {
 
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
-    val bluetoothPermissionsState = rememberMultiplePermissionsState(permissions = BluetoothPermissions.permissions)
-    val locationPermissionState = rememberPermissionState(permission = LocationPermission.permission)
-
+    val bluetoothPermissionsState =
+        rememberMultiplePermissionsState(permissions = BluetoothPermissions.permissions)
+    val locationPermissionState =
+        rememberPermissionState(permission = LocationPermission.permission)
 
     DashboardTestScreen(
         isLocationEnabled = permissionsVM.locationChecker.locationState.value,
@@ -447,15 +476,14 @@ fun DashboardTestScreen(
         isStopWatchActive = dashboardViewModel.stopWatch.isActive,
         locationObserverState = dashboardViewModel.locationObserverState,
         efficiencyFactor = dashboardViewModel.efficiencyFactor,
-        networkStatus =  dashboardViewModel.connectivityObserver.observe().collectAsState(
-            initial = ConnectivityObserver.Status.Unavailable
-        ).value,
+        networkStatus =
+            dashboardViewModel.connectivityObserver
+                .observe()
+                .collectAsState(initial = ConnectivityObserver.Status.Unavailable)
+                .value,
         scooterData = dashboardViewModel.scooterData
     )
 }
-
-
-
 
 @ExperimentalPermissionsApi
 class PermissionsStatePreview : PermissionState {
@@ -464,8 +492,7 @@ class PermissionsStatePreview : PermissionState {
     override val status: PermissionStatus
         get() = PermissionStatus.Denied(shouldShowRationale = true)
 
-    override fun launchPermissionRequest() {
-    }
+    override fun launchPermissionRequest() {}
 }
 
 @ExperimentalPermissionsApi
@@ -479,8 +506,7 @@ class MultiplePermissionsStatePreview : MultiplePermissionsState {
     override val shouldShowRationale: Boolean
         get() = false
 
-    override fun launchMultiplePermissionRequest() {
-    }
+    override fun launchMultiplePermissionRequest() {}
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

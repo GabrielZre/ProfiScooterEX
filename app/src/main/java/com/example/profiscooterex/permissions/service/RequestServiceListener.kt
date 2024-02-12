@@ -2,13 +2,13 @@ package com.example.profiscooterex.permissions.service
 
 import javax.inject.Inject
 
-class RequestServiceListener @Inject constructor(){
+class RequestServiceListener @Inject constructor() {
     private val serviceCallListener = mutableListOf<RequestServicesListener>()
 
-    fun addListener (listener: RequestServicesListener) {
+    fun addListener(listener: RequestServicesListener) {
         serviceCallListener.add(listener)
     }
-    fun removeListener (listener: RequestServicesListener) {
+    fun removeListener(listener: RequestServicesListener) {
         serviceCallListener.remove(listener)
     }
     fun notifyLocationListeners() {
@@ -17,5 +17,4 @@ class RequestServiceListener @Inject constructor(){
     fun notifyBluetoothListeners() {
         serviceCallListener.forEach { it.requestBluetooth() }
     }
-
 }

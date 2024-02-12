@@ -23,17 +23,21 @@ import java.math.RoundingMode
 import kotlin.math.roundToInt
 
 @Suppress("NAME_SHADOWING")
-class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveData<LocationDetails>() {
+class LocationLiveData(var context: Context, var stopWatch: StopWatch) :
+    LiveData<LocationDetails>() {
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-    private var lastFetchedLocation : Location? = null
-    private var distanceTrip : Float = 0f
+    private var lastFetchedLocation: Location? = null
+    private var distanceTrip: Float = 0f
 
     private var omitFirstLocationRequest = true
 
     var locationObserverState by mutableStateOf(LocationState.InActive)
 
     enum class LocationState {
-        Active, InActive, Fetching, Stopped
+        Active,
+        InActive,
+        Fetching,
+        Stopped
     }
 
     override fun onActive() {
@@ -44,19 +48,27 @@ class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveDat
 
     private fun startLocationUpdates() {
         locationPermissionCheck()
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
         locationObserverState = LocationState.Fetching
     }
 
     private fun setTripData(location: Location?) {
-        location?.let {
-                location ->
-            value = LocationDetails(calculateDistanceTrip(location, lastFetchedLocation!!), speedToKmh(location.speed), getAveragedSpeed())
+        location?.let { location ->
+            value =
+                LocationDetails(
+                    calculateDistanceTrip(location, lastFetchedLocation!!),
+                    speedToKmh(location.speed),
+                    getAveragedSpeed()
+                )
             lastFetchedLocation = location
         }
     }
 
-    private fun calculateDistanceTrip(location: Location, previousLocation: Location) : Float {
+    private fun calculateDistanceTrip(location: Location, previousLocation: Location): Float {
         distanceTrip += location.distanceTo(previousLocation)
         return distanceTrip / 1000
     }
@@ -68,15 +80,14 @@ class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveDat
             return 0.0f
         }
 
-        val hours = BigDecimal.valueOf(seconds % 86400 / 3600)
-            .setScale(4, RoundingMode.HALF_UP)
-            .toDouble()
+        val hours =
+            BigDecimal.valueOf(seconds % 86400 / 3600).setScale(4, RoundingMode.HALF_UP).toDouble()
 
         return ((distanceTrip / 1000) / hours).toFloat()
     }
 
-    private fun speedToKmh(currentSpeed: Float) : Float {
-        return  currentSpeed * 3.6f
+    private fun speedToKmh(currentSpeed: Float): Float {
+        return currentSpeed * 3.6f
     }
 
     internal fun resetLocationData() {
@@ -102,38 +113,39 @@ class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveDat
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
-    private val locationCallback = object : LocationCallback() {
-        @SuppressLint("NewApi")
-        override fun onLocationResult(locationResult: LocationResult) {
-            super.onLocationResult(locationResult)
-            locationResult ?: return
+    private val locationCallback =
+        object : LocationCallback() {
+            @SuppressLint("NewApi")
+            override fun onLocationResult(locationResult: LocationResult) {
+                super.onLocationResult(locationResult)
+                locationResult ?: return
 
-            if (omitFirstLocationRequest) {
-                omitFirstLocationRequest = false
-            } else {
-                if (lastFetchedLocation == null) {
-                    lastFetchedLocation = locationResult.lastLocation
-                    stopWatch.start()
-                    locationObserverState = LocationState.Active
-                }
-                if ((lastFetchedLocation?.latitude != locationResult.lastLocation?.latitude) &&
-                    lastFetchedLocation?.longitude != locationResult.lastLocation?.longitude
-                ) {
-                    setTripData(locationResult.lastLocation)
+                if (omitFirstLocationRequest) {
+                    omitFirstLocationRequest = false
+                } else {
+                    if (lastFetchedLocation == null) {
+                        lastFetchedLocation = locationResult.lastLocation
+                        stopWatch.start()
+                        locationObserverState = LocationState.Active
+                    }
+                    if (
+                        (lastFetchedLocation?.latitude != locationResult.lastLocation?.latitude) &&
+                            lastFetchedLocation?.longitude != locationResult.lastLocation?.longitude
+                    ) {
+                        setTripData(locationResult.lastLocation)
+                    }
                 }
             }
         }
-    }
-
 
     private fun locationPermissionCheck() {
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+        if (
+            ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
         ) {
             return
         }
@@ -141,10 +153,11 @@ class LocationLiveData(var context: Context, var stopWatch: StopWatch) : LiveDat
 
     companion object {
         private const val SEC: Long = 1000
-        val locationRequest: LocationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, SEC)
-            .setWaitForAccurateLocation(false)
-            .setMinUpdateIntervalMillis(SEC)
-            .setMaxUpdateDelayMillis(SEC)
-            .build()
+        val locationRequest: LocationRequest =
+            LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, SEC)
+                .setWaitForAccurateLocation(false)
+                .setMinUpdateIntervalMillis(SEC)
+                .setMaxUpdateDelayMillis(SEC)
+                .build()
     }
 }

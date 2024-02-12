@@ -15,18 +15,18 @@ import com.example.profiscooterex.data.ble.BatteryVoltageReceiveManager
 import com.example.profiscooterex.data.ble.BatteryVoltageResult
 import com.example.profiscooterex.data.ble.ConnectionState
 import com.example.profiscooterex.util.Resource
+import java.util.UUID
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import java.util.UUID
-import javax.inject.Inject
 
 @SuppressLint("MissingPermission")
-class BatteryVoltageBLEReceiveManager @Inject constructor(
-    private val bluetoothAdapter: BluetoothAdapter,
-    private val context: Context
-) : BatteryVoltageReceiveManager {
+class BatteryVoltageBLEReceiveManager
+@Inject
+constructor(private val bluetoothAdapter: BluetoothAdapter, private val context: Context) :
+    BatteryVoltageReceiveManager {
 
     private val DEVICE_NAME = "BME280_ESP32"
     private val BATTERY_VOLTAGE_SERVICE_UUID = "91bad492-b950-4226-aa2b-4ede9fa42f59"
@@ -34,13 +34,10 @@ class BatteryVoltageBLEReceiveManager @Inject constructor(
 
     override val data: MutableSharedFlow<Resource<BatteryVoltageResult>> = MutableSharedFlow()
 
-    private val bleScanner by lazy {
-        bluetoothAdapter.bluetoothLeScanner
-    }
+    private val bleScanner by lazy { bluetoothAdapter.bluetoothLeScanner }
 
-    private val scanSettings = ScanSettings.Builder()
-        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-        .build()
+    private val scanSettings =
+        ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
 
     private var gatt: BluetoothGatt? = null
 
@@ -48,128 +45,142 @@ class BatteryVoltageBLEReceiveManager @Inject constructor(
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
-    private val scanCallback = object : ScanCallback() {
-        override fun onScanResult(callbackType: Int, result: ScanResult) {
-            if(result.device.name == DEVICE_NAME) {
-                coroutineScope.launch {
-                    data.emit(Resource.Loading(message = "Connecting to device..."))
-                }
-                if(isScanning) {
-                    result.device.connectGatt(context, false, gattCallback)
-                    isScanning = false
-                    bleScanner.stopScan(this)
+    private val scanCallback =
+        object : ScanCallback() {
+            override fun onScanResult(callbackType: Int, result: ScanResult) {
+                if (result.device.name == DEVICE_NAME) {
+                    coroutineScope.launch {
+                        data.emit(Resource.Loading(message = "Connecting to device..."))
+                    }
+                    if (isScanning) {
+                        result.device.connectGatt(context, false, gattCallback)
+                        isScanning = false
+                        bleScanner.stopScan(this)
+                    }
                 }
             }
         }
-    }
 
     private var currentConnectionAttempt = 1
     private var MAXIMUM_CONNECTION_ATTEMPTS = 2
 
-    private val gattCallback = object : BluetoothGattCallback() {
-        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-            if(status == BluetoothGatt.GATT_SUCCESS) {
-                if(newState == BluetoothProfile.STATE_CONNECTED) {
-                    coroutineScope.launch {
-                        data.emit(Resource.Loading(message = "Discovering Services..."))
-                    }
-                    gatt.discoverServices()
-                    this@BatteryVoltageBLEReceiveManager.gatt = gatt
-                } else if(newState == BluetoothProfile.STATE_DISCONNECTED) {
-                    coroutineScope.launch {
-                        data.emit(Resource.Success(data = BatteryVoltageResult(0f, 0f, ConnectionState.Disconnected)))
-                    }
-                    gatt.close()
-                }
-            } else {
-                gatt.close()
-                currentConnectionAttempt += 1
-                coroutineScope.launch {
-                    data.emit(
-                        Resource.Loading(
-                            message = "Attempting to connect $currentConnectionAttempt/$MAXIMUM_CONNECTION_ATTEMPTS"
-                        )
-                    )
-                }
-
-                if(currentConnectionAttempt <= MAXIMUM_CONNECTION_ATTEMPTS) {
-                    startReceiving()
-                } else {
-                    gatt.close()
-                    gatt.disconnect()
-                    coroutineScope.launch {
-                        data.emit(Resource.Error(errorMessage = "Could not connect to ble device"))
-                    }
-                }
-            }
-        }
-
-        override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-            with(gatt) {
-                printGattTable()
-                coroutineScope.launch {
-                    data.emit(Resource.Loading(message = "Adjusting MTU space..."))
-                }
-                gatt.requestMtu(517)
-            }
-        }
-
-        override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
-            val characteristics = findCharacteristics(BATTERY_VOLTAGE_SERVICE_UUID, BATTERY_VOLTAGE_CHARACTERISTICS_UUID)
-            if(characteristics == null) {
-                coroutineScope.launch {
-                    data.emit(Resource.Error(errorMessage = "Could not find battery voltage publisher"))
-                }
-                return
-            }
-            enableNotification(characteristics)
-        }
-
-        override fun onCharacteristicChanged(
-            gatt: BluetoothGatt,
-            characteristic: BluetoothGattCharacteristic,
-            value: ByteArray
-        ) {
-            with(characteristic) {
-                when(uuid) {
-                    UUID.fromString(BATTERY_VOLTAGE_CHARACTERISTICS_UUID) -> {
-                        val valuesData = String(value, Charsets.UTF_8)
-                        val values = valuesData.split(",")
-
-                        val humidity = values[0].toFloat()
-                        val batteryVoltage = values[1].toFloat()
-
-                        val batteryVoltageResult = BatteryVoltageResult(
-                            humidity,
-                            batteryVoltage,
-                            ConnectionState.Connected
-                        )
-
-
+    private val gattCallback =
+        object : BluetoothGattCallback() {
+            override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    if (newState == BluetoothProfile.STATE_CONNECTED) {
+                        coroutineScope.launch {
+                            data.emit(Resource.Loading(message = "Discovering Services..."))
+                        }
+                        gatt.discoverServices()
+                        this@BatteryVoltageBLEReceiveManager.gatt = gatt
+                    } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                         coroutineScope.launch {
                             data.emit(
-                                Resource.Success(data = batteryVoltageResult)
+                                Resource.Success(
+                                    data =
+                                        BatteryVoltageResult(0f, 0f, ConnectionState.Disconnected)
+                                )
+                            )
+                        }
+                        gatt.close()
+                    }
+                } else {
+                    gatt.close()
+                    currentConnectionAttempt += 1
+                    coroutineScope.launch {
+                        data.emit(
+                            Resource.Loading(
+                                message =
+                                    "Attempting to connect $currentConnectionAttempt/$MAXIMUM_CONNECTION_ATTEMPTS"
+                            )
+                        )
+                    }
+
+                    if (currentConnectionAttempt <= MAXIMUM_CONNECTION_ATTEMPTS) {
+                        startReceiving()
+                    } else {
+                        gatt.close()
+                        gatt.disconnect()
+                        coroutineScope.launch {
+                            data.emit(
+                                Resource.Error(errorMessage = "Could not connect to ble device")
                             )
                         }
                     }
-                    else -> Unit
+                }
+            }
+
+            override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
+                with(gatt) {
+                    printGattTable()
+                    coroutineScope.launch {
+                        data.emit(Resource.Loading(message = "Adjusting MTU space..."))
+                    }
+                    gatt.requestMtu(517)
+                }
+            }
+
+            override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
+                val characteristics =
+                    findCharacteristics(
+                        BATTERY_VOLTAGE_SERVICE_UUID,
+                        BATTERY_VOLTAGE_CHARACTERISTICS_UUID
+                    )
+                if (characteristics == null) {
+                    coroutineScope.launch {
+                        data.emit(
+                            Resource.Error(
+                                errorMessage = "Could not find battery voltage publisher"
+                            )
+                        )
+                    }
+                    return
+                }
+                enableNotification(characteristics)
+            }
+
+            override fun onCharacteristicChanged(
+                gatt: BluetoothGatt,
+                characteristic: BluetoothGattCharacteristic,
+                value: ByteArray
+            ) {
+                with(characteristic) {
+                    when (uuid) {
+                        UUID.fromString(BATTERY_VOLTAGE_CHARACTERISTICS_UUID) -> {
+                            val valuesData = String(value, Charsets.UTF_8)
+                            val values = valuesData.split(",")
+
+                            val humidity = values[0].toFloat()
+                            val batteryVoltage = values[1].toFloat()
+
+                            val batteryVoltageResult =
+                                BatteryVoltageResult(
+                                    humidity,
+                                    batteryVoltage,
+                                    ConnectionState.Connected
+                                )
+
+                            coroutineScope.launch {
+                                data.emit(Resource.Success(data = batteryVoltageResult))
+                            }
+                        }
+                        else -> Unit
+                    }
                 }
             }
         }
 
-    }
-
-
-
     private fun enableNotification(characteristic: BluetoothGattCharacteristic) {
         val cccdUuid = UUID.fromString(CCCD_DESCRIPTOR_UUID)
-        val payload = when {
-            characteristic.isIndicatable() -> BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
-            characteristic.isNotifiable() -> BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-            else -> return
-        }
+        val payload =
+            when {
+                characteristic.isIndicatable() -> BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
+                characteristic.isNotifiable() -> BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                else -> return
+            }
         characteristic.getDescriptor(cccdUuid)?.let { cccdDescriptor ->
-            if(gatt?.setCharacteristicNotification(characteristic, true) == false) {
+            if (gatt?.setCharacteristicNotification(characteristic, true) == false) {
                 return
             }
             writeDescription(cccdDescriptor, payload)
@@ -180,21 +191,23 @@ class BatteryVoltageBLEReceiveManager @Inject constructor(
         gatt?.let { gatt ->
             descriptor.value = payload
             gatt.writeDescriptor(descriptor)
-        } ?: error("Not connected to a BLE device!")
+        }
+            ?: error("Not connected to a BLE device!")
     }
 
-    private fun findCharacteristics(serviceUUID: String, characteristicsUUID: String): BluetoothGattCharacteristic? {
-        return gatt?.services?.find { service ->
-            service.uuid.toString() == serviceUUID
-        }?.characteristics?.find {characteristics ->
-            characteristics.uuid.toString() == characteristicsUUID
-        }
+    private fun findCharacteristics(
+        serviceUUID: String,
+        characteristicsUUID: String
+    ): BluetoothGattCharacteristic? {
+        return gatt
+            ?.services
+            ?.find { service -> service.uuid.toString() == serviceUUID }
+            ?.characteristics
+            ?.find { characteristics -> characteristics.uuid.toString() == characteristicsUUID }
     }
 
     override fun startReceiving() {
-        coroutineScope.launch {
-            data.emit(Resource.Loading(message = "Scanning Ble devices..."))
-        }
+        coroutineScope.launch { data.emit(Resource.Loading(message = "Scanning Ble devices...")) }
         isScanning = true
         bleScanner.startScan(null, scanSettings, scanCallback)
     }
@@ -209,8 +222,9 @@ class BatteryVoltageBLEReceiveManager @Inject constructor(
 
     override fun closeConnection() {
         bleScanner.stopScan(scanCallback)
-        val characteristic = findCharacteristics(BATTERY_VOLTAGE_SERVICE_UUID, BATTERY_VOLTAGE_CHARACTERISTICS_UUID)
-        if(characteristic != null) {
+        val characteristic =
+            findCharacteristics(BATTERY_VOLTAGE_SERVICE_UUID, BATTERY_VOLTAGE_CHARACTERISTICS_UUID)
+        if (characteristic != null) {
             disconnectCharacteristics(characteristic)
         }
         gatt?.close()
@@ -218,12 +232,11 @@ class BatteryVoltageBLEReceiveManager @Inject constructor(
 
     private fun disconnectCharacteristics(characteristic: BluetoothGattCharacteristic) {
         val cccdUuid = UUID.fromString(CCCD_DESCRIPTOR_UUID)
-        characteristic.getDescriptor(cccdUuid)?.let {cccdDescriptor ->
-            if(gatt?.setCharacteristicNotification(characteristic, false) == false) {
+        characteristic.getDescriptor(cccdUuid)?.let { cccdDescriptor ->
+            if (gatt?.setCharacteristicNotification(characteristic, false) == false) {
                 return
             }
             writeDescription(cccdDescriptor, BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE)
         }
     }
-
 }

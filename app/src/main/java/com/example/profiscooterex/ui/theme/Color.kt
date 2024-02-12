@@ -34,7 +34,7 @@ val md_theme_light_shadow = Color(0xFF000000)
 val md_theme_light_surfaceTint = Color(0xFF006492)
 
 val md_theme_dark_primary = Color(0xFF8BCEFF)
-val md_theme_dark_onPrimary =  Color(0xFFFFFFFF)
+val md_theme_dark_onPrimary = Color(0xFFFFFFFF)
 val md_theme_dark_primaryContainer = Color(0xFF004B6F)
 val md_theme_dark_onPrimaryContainer = Color(0xFFC9E6FF)
 val md_theme_dark_secondary = Color(0xFFB7C9D9)
@@ -62,7 +62,6 @@ val md_theme_dark_inversePrimary = Color(0xFF006492)
 val md_theme_dark_shadow = Color(0xFF000000)
 val md_theme_dark_surfaceTint = Color(0xFF8BCEFF)
 
-
 val seed = Color(0xFF3B80AC)
 
 val Purple700 = Color(0xFF3700B3)
@@ -79,12 +78,11 @@ val DarkColor2 = Color(0xFF202532)
 val LightColor = Color(0xFF414D66)
 val LightColor2 = Color(0xFF626F88)
 
-val GreenGradient = Brush.linearGradient(
-    colors = listOf(Green300, Green200),
-    start = Offset(0f, 0f),
-    end = Offset(Float.POSITIVE_INFINITY, 0f)
-)
+val GreenGradient =
+    Brush.linearGradient(
+        colors = listOf(Green300, Green200),
+        start = Offset(0f, 0f),
+        end = Offset(Float.POSITIVE_INFINITY, 0f)
+    )
 
-val DarkGradient = Brush.verticalGradient(
-    colors = listOf(DarkColor2, DarkColor)
-)
+val DarkGradient = Brush.verticalGradient(colors = listOf(DarkColor2, DarkColor))

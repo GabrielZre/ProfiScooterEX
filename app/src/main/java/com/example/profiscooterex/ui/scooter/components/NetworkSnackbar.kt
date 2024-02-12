@@ -17,23 +17,12 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun NetworkSnackBar(snackBarHostState: SnackbarHostState, text: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-    ) {
-
+    Box(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
         SnackbarHost(
             hostState = snackBarHostState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
+            modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter)
         ) {
-            Snackbar(
-                modifier = Modifier
-                    .wrapContentHeight()
-                    .padding(0.dp, 0.dp, 0.dp, 80.dp)
-            ) {
+            Snackbar(modifier = Modifier.wrapContentHeight().padding(0.dp, 0.dp, 0.dp, 80.dp)) {
                 Text(text, color = Color.White)
             }
         }

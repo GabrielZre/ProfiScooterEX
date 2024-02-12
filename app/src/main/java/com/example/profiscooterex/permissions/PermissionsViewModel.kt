@@ -8,7 +8,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class PermissionsViewModel @Inject constructor(
+class PermissionsViewModel
+@Inject
+constructor(
     val locationChecker: LocationChecker,
     val bluetoothChecker: BluetoothChecker,
     private val requestServiceListener: RequestServiceListener
@@ -21,5 +23,4 @@ class PermissionsViewModel @Inject constructor(
     fun requestForBluetooth() {
         requestServiceListener.notifyBluetoothListeners()
     }
-
 }

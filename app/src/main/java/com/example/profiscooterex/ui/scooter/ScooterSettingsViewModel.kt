@@ -11,16 +11,23 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ScooterSettingsViewModel
-@Inject constructor(
+@Inject
+constructor(
     application: Application,
     private val dataViewModel: DataViewModel,
 ) : AndroidViewModel(application) {
 
-    var connectivityObserver: ConnectivityObserver = NetworkConnectivityObserver(application.applicationContext)
+    var connectivityObserver: ConnectivityObserver =
+        NetworkConnectivityObserver(application.applicationContext)
     val scooterData: Scooter
         get() = dataViewModel.scooterDataState.value
 
-    fun calculateStartIndex(scooterValue: String, minValue: String, maxValue: String, step: Int): Int {
+    fun calculateStartIndex(
+        scooterValue: String,
+        minValue: String,
+        maxValue: String,
+        step: Int
+    ): Int {
         return if (scooterValue.isNotBlank()) {
             val index = (scooterValue.toInt() - minValue.toInt()) / step
             index - 1
@@ -30,8 +37,6 @@ class ScooterSettingsViewModel
     }
 
     fun saveScooterSettings(scooter: Scooter) {
-        dataViewModel.sendScooterData(
-            scooter
-        )
+        dataViewModel.sendScooterData(scooter)
     }
 }
