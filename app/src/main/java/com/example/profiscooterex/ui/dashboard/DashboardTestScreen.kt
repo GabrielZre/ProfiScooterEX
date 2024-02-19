@@ -334,7 +334,7 @@ fun showSnackBar(coroutineScope: CoroutineScope, snackBarHostState: SnackbarHost
 fun ShowProgress(score: Float) {
     val gradient = Brush.linearGradient(listOf(Color(0xFF313633), Color(0xFF8BC34A)))
 
-    val animatedProgress = remember { Animatable(0f) }
+    val animatedProgress = remember { Animatable(score / 100f) }
 
     LaunchedEffect(score) {
         animatedProgress.animateTo(score * 0.01f, animationSpec = tween(durationMillis = 2000))
